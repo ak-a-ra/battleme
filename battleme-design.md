@@ -1,0 +1,329 @@
+# BattleMe — Design Snapshot
+_Last updated: 2026-05-10 | Status: In Progress (grilling session)_
+
+---
+
+## Concept
+
+**BattleMe** is a streamer-vs-chat monster battle game built as a standalone desktop app for Windows. The streamer and their Twitch chat compete in turn-based monster battles displayed as an OBS overlay. Chat votes on moves via Twitch polls. The app ships as a single compiled binary (Tauri) — no server knowledge required.
+
+Open source on GitHub under the name `BattleMe`.
+
+---
+
+## Stack
+
+| Layer | Tech |
+|---|---|
+| Desktop app | Tauri (Rust backend + React frontend) |
+| Database | SQLite (embedded, ships in binary) |
+| Overlay | Browser source in OBS → `localhost` |
+| Twitch integration | Twitch EventSub (polls) |
+| LLM | Anthropic API (streamer provides own key) |
+| Platform | Windows first (Mac/Linux post-v1) |
+
+**API key:** Stored in local `.env` file, entered once via app settings page.
+
+---
+
+## Core Game Loop
+
+1. Streamer pre-drafts 3-monster lineup + selects Hunter before stream
+2. Battle starts → chat picks their 3 monsters from remaining pool (+ RNG wildcard)
+3. Turn begins → Twitch poll opens (configurable duration: e.g. 30s, 1min, 5min)
+4. Majority vote selects chat's move
+5. Streamer manually selects their monster's move
+6. Turn resolves → overlay animates → state saves to SQLite
+7. Repeat until all 3 monsters on one side are KO'd
+8. Winner declared → post-battle running scene plays
+9. Battle log saved to DB
+
+---
+
+## Teams
+
+### Streamer Side
+- **1 Hunter** (commander, acts once per battle as ultimate)
+- **3 Monsters** (pre-drafted before stream)
+- Hunter has MP regen each turn
+- Streamer manually picks moves
+
+### Chat Side
+- **3 Monsters** (drafted at battle start from remaining pool)
+- **1 RNG wildcard** added to chat's draft pool for chaos
+- Monsters have NO MP regen (MP is finite per battle)
+- Moves decided by Twitch poll majority vote
+
+---
+
+## Battle Mechanics
+
+### Win Condition
+KO all 3 enemy monsters. Hunter is commander only — not a combat target.
+
+### Turn Structure
+- Turn starts → app auto-creates Twitch poll (5 options: 4 abilities + basic attack)
+- Poll duration: configurable per battle by streamer
+- Streamer picks move simultaneously (hidden from chat)
+- Timer expires → majority vote wins for chat
+- Both moves **reveal simultaneously** → overlay animates → floating damage numbers + status text
+- AGI determines turn order (ties = random)
+- Next turn begins
+
+### Timeout Fallback
+Streamer configures in settings: **random move** OR **basic attack**. One toggle.
+
+### Basic Attack
+Always available at 0 MP cost. Always shown as poll option 5.
+
+### Hunter Ultimate
+Once per battle. High-impact skill. Streamer chooses timing. Hunter visible on overlay behind monster lineup.
+
+### Surrender
+Streamer can surrender a round mid-battle via dashboard button.
+
+### Draft (per round)
+1. Streamer pre-selected lineup (pre-stream)
+2. 3 separate Twitch polls — chat picks one monster per poll from remaining pool
+3. Streamer optionally toggles RNG wildcard per battle (adds 1 random monster to chat's draft pool)
+
+### Session
+- Multiple rounds per stream
+- Each round: fresh draft, new polls
+- Round result saved to BattleLog
+- Streamer switches Hunter via dashboard dropdown before each round (v1: 1 Hunter template)
+
+### Twitch Disconnect
+Auto-pause battle + show reconnecting message on overlay.
+
+---
+
+## Stats System (PoE/Diablo/FF style)
+
+| Stat | Effects |
+|---|---|
+| STR | Physical damage output |
+| AGI | Turn order (higher AGI acts first) + dodge chance |
+| DEX | Crit chance + physical accuracy (miss chance on low DEX) |
+| INT | Magic damage output + max MP pool size + Hunter MP regen per turn |
+| LUCK | Crit damage multiplier (150% base + 0.5% per LUCK point) — rewards post-v1 |
+
+### Damage Formula
+- Base damage calculated from STR (physical) or INT (magic)
+- Roll variance: **80%–120%** of base damage per hit
+- Crit: **150% base multiplier**, scaled by LUCK
+- Type effectiveness applied after variance roll
+
+---
+
+## Monster & Hunter DB
+
+### Monster
+```
+id, name, sprite_id, type, hp, mp, str, agi, dex, int, luck,
+abilities[], lore, generated_by_llm (bool)
+```
+
+### Hunter
+```
+id, name, sprite_id, class, hp, mp, str, agi, dex, int, luck,
+skills[], passive, ultimate, lore
+```
+
+### Ability
+```
+id, name, mp_cost, power, type, effect, status_inflict_id
+```
+
+### StatusEffect
+```
+id, name, icon, effect_per_turn, duration, visual_color
+```
+
+### BattleLog
+```
+id, date, winner_side, streamer_team[], chat_team[], turns[], duration
+```
+
+---
+
+## Monster System
+
+- **6 Types:** Fire, Water, Earth, Wind, Dark, Light
+- Same pixel art assets reused — LLM generates unique stats/abilities per monster
+- LLM runs on "Generate Stats" button in admin UI, streamer can edit before saving
+- Side-view sprites, classic RPG pixel style
+
+### Abilities per Monster
+- **4 active abilities** (chat votes on these each turn)
+- **4 passive abilities** (always active, generated by LLM)
+- Basic attack always available at 0 MP cost
+
+### MP
+- Chat monsters: **no MP regen** — MP is finite per battle
+- Hunter: **MP regens per turn** (scaled by INT)
+
+### Type Chart
+
+| Type | Beats | Weak to |
+|---|---|---|
+| 🔥 Fire | Earth, Wind | Water |
+| 💧 Water | Fire, Earth | Wind |
+| 🌍 Earth | Water | Fire, Wind |
+| 🌀 Wind | Water, Earth | Fire |
+| 🌑 Dark | Light | Light |
+| ✨ Light | Dark | Dark |
+
+Dark/Light neutral vs elemental types.
+
+### Status Effects (v1 — 9 total)
+
+| Effect | Behavior |
+|---|---|
+| Burn | Flat fire damage per turn |
+| Poison | DoT that intensifies each turn (stacks in damage, not duration) |
+| Freeze | Reduces AGI + dodge chance, monster still acts |
+| Stun | Skip turn entirely |
+| Blind | Reduces physical accuracy only (magic always hits) |
+| Slow | Reduces AGI (mutually exclusive with Freeze — applying one replaces the other) |
+| Fear | Monster can only use basic attack |
+| Bleeding | DoT as % of max HP per turn |
+| Sleep | Skip multiple turns, breaks on taking damage |
+
+**Rules:**
+- Max 1 status inflicted per ability
+- Re-applying same status resets duration only (no stacking)
+- Icons displayed right of HP/MP bars on overlay
+
+---
+
+## Overlay
+
+```
+Layer 4 (top)  — UI: HP/MP bars, status icons (right of bars), floating damage numbers, status text popups
+Layer 3        — Floor elements: ground, sky, trees (parallax/moving/static)
+Layer 2        — Hunter sprite (left, visible) + 3 Monster sprites (right), active highlighted, KO'd stay in K.O. state
+Layer 1 (base) — Background: streamer drops image/gif into folder, picks from dashboard list
+```
+
+**Post-battle scene:** Hunter runs across screen with parallax tree animation.
+**Sound effects:** Packaged in binary, plays through overlay. Toggle off in settings.
+**OBS integration:** "Copy OBS URL" button in dashboard → `localhost:3000/overlay`.
+**Test mode:** Simulate battle without Twitch connected, for overlay setup.
+
+---
+
+## App Features
+
+### Settings (.env)
+```
+TWITCH_CLIENT_ID=
+TWITCH_CLIENT_SECRET=
+TWITCH_CHANNEL_NAME=
+ANTHROPIC_API_KEY=
+```
+
+### Dashboard
+- Start/surrender battle
+- Hunter selector (dropdown, v1: 1 template)
+- RNG wildcard toggle per battle
+- Poll duration config
+- Timeout fallback config (random move / basic attack)
+- Copy OBS URL button
+- Test mode button
+
+### Stats & Analytics
+- Streamer vs chat win ratio
+- Most picked monsters
+- Most used abilities
+- Win rates per monster
+
+### Auto-Update
+Tauri updater — checks on launch, prompts streamer to download new `.exe` from GitHub releases.
+
+---
+
+## Post-v1 Roadmap
+
+- Twitch Channel Points redeems (must-have)
+- Gift sub effects (must-have)
+- Sub effects (must-have)
+- Bits effects (must-have)
+- OAuth login (replace .env Twitch auth)
+- Multi-Hunter switching
+- Kick / YouTube platform adapters
+- Public wiki hosting
+- LUCK reward/drop system
+- Mac / Linux builds
+
+---
+
+## Frontend Pages
+
+### Wiki (public-facing companion website)
+- `/wiki/monsters` — grid + filter by type
+- `/wiki/monsters/:id` — full page: stats, abilities, lore, type
+- `/wiki/hunters` — same pattern
+- `/wiki/status-effects` — visual table with icons and effect descriptions
+
+### Admin UI (streamer only)
+- `/admin/monsters` — CRUD + "Generate Stats" LLM button
+- `/admin/hunters` — CRUD, manage multiple hunters
+- `/admin/abilities` — CRUD
+- `/admin/status` — CRUD
+- `/admin/settings` — Anthropic API key (.env), Twitch credentials
+
+### Battle
+- `/overlay` — OBS browser source (battle UI, all 4 layers)
+- `/dashboard` — streamer battle control (draft, start, move selection)
+- `/history` — past battle logs with turn-by-turn breakdown
+
+---
+
+## Platform
+
+- **Twitch first** — poll system, EventSub
+- Poll duration: **configurable per battle** (streamer sets before match)
+- Kick / YouTube: future adapters (pluggable poll layer)
+
+---
+
+## Background System
+
+Streamer drops image/gif files into a designated folder. Dashboard shows a picker list from that folder. Can be static, looping gif, or animated. Streamer swaps between rounds.
+
+---
+
+## Session & Rounds
+
+- Multiple battles per stream session
+- Each round: fresh draft, new Twitch poll
+- Best-of-3 or open-ended — streamer decides
+- Each round result saved to BattleLog DB
+
+---
+
+## Defaults (locked, no grilling needed)
+
+- No type match → **1.0x damage** (neutral)
+- Poison intensity → **+10% of base damage per tick**
+- Default poll duration → **30 seconds**
+
+---
+
+## Post-v1 Roadmap
+
+- **Item & Equipment system** (must-have)
+  - Loot box drops after each battle
+  - RNG-generated items — same sprite assets, different stats/status modifiers per roll (Diablo itemization)
+  - Items equippable to monsters/hunter
+- Twitch Channel Points redeems (must-have)
+- Gift sub effects (must-have)
+- Sub effects (must-have)
+- Bits effects (must-have)
+- OAuth login (replace .env Twitch auth)
+- Multi-Hunter switching
+- Kick / YouTube platform adapters
+- Public wiki hosting
+- LUCK reward/drop system
+- Mac / Linux builds
