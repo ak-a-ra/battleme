@@ -1,6 +1,18 @@
 # BattleMe — Implementation Plan Index
 
-> Feed each task file to Claude Code one at a time. Complete in order — each task builds on the previous.
+> Feed each task file to Claude Code one at a time. Task files live in `docs/design/`. Complete in order — each task builds on the previous.
+
+---
+
+## Quick Reference
+
+```
+AGENTS.md              ← project context for AI agents
+PLAN.md                ← master implementation plan
+docs/design/           ← task specs (01–13)
+docs/adr/              ← architecture decision records
+tmp/                   ← scratch/temp (gitignored)
+```
 
 ---
 
@@ -8,19 +20,20 @@
 
 | # | File | Goal | Depends on |
 |---|---|---|---|
-| 01 | `task-01-scaffold.md` | Tauri + React project init, folder structure, .env template | — |
-| 02 | `task-02-database.md` | SQLite schema, migrations, seed 12 monsters + 9 status effects | 01 |
-| 03 | `task-03-commands.md` | Tauri invoke commands for all CRUD + settings | 02 |
-| 04 | `task-04-battle-engine.md` | Rust battle engine — damage calc, type chart, status effects | 03 |
-| 05 | `task-05-twitch.md` | Twitch EventSub, poll creation, test mode stub | 03 |
-| 06 | `task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 |
-| 07 | `task-07-overlay-layers.md` | OBS overlay 4-layer system, sprite animations, parallax | 04 |
-| 08 | `task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 |
-| 09 | `task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 |
-| 10 | `task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 05, 09 |
-| 11 | `task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 |
-| 12 | `task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 |
-| 13 | `task-13-polish.md` | Sound effects, auto-updater, Twitch disconnect recovery, Windows build | all |
+| 01 | `docs/design/task-01-scaffold.md` | Tauri + React project init, folder structure, .env template | — |
+| 02 | `docs/design/task-02-database.md` | SQLite schema, migrations, seed 12 monsters + 9 status effects | 01 |
+| 03 | `docs/design/task-03-commands.md` | Tauri invoke commands for all CRUD + settings | 02 |
+| 04 | `docs/design/task-04-battle-engine.md` | Rust battle engine — damage calc, type chart, status (+ tests) | 03 |
+| 05 | `docs/design/task-05-twitch.md` | Twitch EventSub, poll creation, test mode stub | 03 |
+| 01-b | `docs/design/task-01b-http-bridge.md` | HTTP bridge for OBS overlay — shared state, REST endpoints | 04 |
+| 06 | `docs/design/task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 |
+| 07 | `docs/design/task-07-overlay-layers.md` | OBS overlay 4-layer system, sprite animations, parallax | 01-b |
+| 08 | `docs/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 |
+| 09 | `docs/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 |
+| 10 | `docs/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 |
+| 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 |
+| 12 | `docs/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 |
+| 13 | `docs/design/task-13-polish.md` | Sound effects, auto-updater, Twitch disconnect recovery, Windows build | all |
 
 ---
 
@@ -54,7 +67,8 @@
 
 - **Binary:** Single `.exe`, no install required
 - **DB:** SQLite embedded via `rusqlite`
-- **Overlay:** OBS browser source → `localhost:3000/overlay`
+- **Overlay:** OBS browser source → port 38021 HTTP bridge (polled via fetch every 1s). Dev: `localhost:3000/overlay`, Prod: `localhost:38021/overlay`
+- **OBS vs IPC:** OBS browser sources cannot use Tauri IPC. A `tiny_http` server in Rust serves battle state JSON at `/api/battle-state`. The overlay polls this endpoint.
 - **Twitch auth:** `.env` file, client credentials flow
 - **LLM:** Anthropic API, runs once per monster on "Generate Stats"
 - **Poll duration:** Configurable per battle, default 30s

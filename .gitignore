@@ -1,0 +1,25 @@
+# Rust
+target/
+*.lock
+
+# Node
+node_modules/
+
+# Env
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
+
+# Build artifacts
+*.exe
+*.msi
+battleme.db
