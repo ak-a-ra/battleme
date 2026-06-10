@@ -1,1 +1,3 @@
-// db module — SQLite models, migrations, seed (task 02+)
+pub mod models;
+pub mod migrations;
+pub mod seed;
