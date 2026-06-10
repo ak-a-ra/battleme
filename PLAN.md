@@ -76,7 +76,7 @@ AppState:
 |------|--------|--------|-------|
 | 01 — Scaffold | ✅ | `d5901f6` | Deployed w/o `rustup` (cargo only); `tsc` via `node node_modules/.bin/tsc` |
 | 02 — Database | ✅ | `4d0e919` | CWD path dev fallback; 2 unit tests for seed |
-| 03 — Commands | ⬜ | — | |
+| 03 — Commands | ✅ | `40b3461` | 19 commands; AppState with tokio::sync::Mutex; Tauri v2 Result requirement; app_data_dir |
 | 04 — Battle Engine | ⬜ | — | |
 | 05 — Twitch | ⬜ | — | |
 | 01-b — HTTP Bridge | ⬜ | — | |
@@ -140,50 +140,31 @@ AppState:
 
 ## TASK 03 — Tauri Commands (CRUD + Settings)
 
-AppState in main.rs:
-  use tokio::sync::Mutex;            // tokio::sync::Mutex for async safety
-  use std::sync::{Arc, RwLock};
-  pub struct AppState {
-    pub db: tokio::sync::Mutex<Connection>,
-    pub battle_state: Arc<RwLock<BattleState>>,  // shared with HTTP bridge
-  }
+## TASK 03 — Commands ✅
 
-commands/monsters.rs:
-  #[tauri::command] get_monsters(state) -> Vec<Monster>
-  create_monster(state, monster) -> i64
-  update_monster(state, monster)
-  delete_monster(state, id)
+Commit: `40b3461`
 
-commands/abilities.rs:
-  get_abilities_for_monster(monster_id)
-  create_ability / update_ability / delete_ability
-  assign_ability_to_monster(monster_id, ability_id)
+### Summary
+- AppState in lib.rs: `tokio::sync::Mutex<Connection>` + `Arc<RwLock<BattleState>>`
+- 5 command submodules in `src-tauri/src/commands/`:
+  - **monsters.rs**: get_monsters, create_monster, update_monster, delete_monster
+  - **hunters.rs**: get_hunters, create_hunter, update_hunter, delete_hunter
+  - **abilities.rs**: get_abilities_for_monster, create_ability, update_ability, delete_ability, assign_ability_to_monster
+  - **status_effects.rs**: get_status_effects, create_status_effect, update_status_effect, delete_status_effect
+  - **settings.rs**: get_settings (reads .env via dotenvy), save_settings (writes .env)
+- All async commands with State return `Result<T, String>` (Tauri v2 requirement)
+- DB path uses `app.path().app_data_dir()` via `.setup()` + `use tauri::Manager;`
+- BattleState placeholder in battle/types.rs (expanded in task-04)
+- `src/lib/invoke.ts` typed wrapper for all 19 commands
 
-commands/hunters.rs: same CRUD pattern.
+### Deps added
+- tokio = { version = "1", features = ["full"] }
+- dotenvy = "0.15"
 
-commands/status_effects.rs: same CRUD pattern.
-
-commands/settings.rs:
-  get_settings() -> HashMap<String,String>
-    dotenvy::dotenv().ok(); read TWITCH_CLIENT_ID, TWITCH_CHANNEL_NAME, ANTHROPIC_API_KEY
-  save_settings(settings) -> write key=value lines to .env
-
-Register all in main.rs with tauri::generate_handler![].
-
-src/lib/invoke.ts (typed wrapper):
-  import { invoke } from '@tauri-apps/api/core'
-  export const api = {
-    getMonsters: () => invoke('get_monsters'),
-    createMonster: (m) => invoke('create_monster', { monster: m }),
-    updateMonster: (m) => invoke('update_monster', { monster: m }),
-    deleteMonster: (id) => invoke('delete_monster', { id }),
-    getHunters: () => invoke('get_hunters'),
-    getStatusEffects: () => invoke('get_status_effects'),
-    getSettings: () => invoke('get_settings'),
-    saveSettings: (s) => invoke('save_settings', { settings: s }),
-  }
-
-Commit: "feat: tauri commands for all CRUD operations"
+### Verified
+- `cargo check` — clean (1 pre-existing dead_code warning for BattleLog)
+- `cargo test --lib` — 3/3 pass
+- `vite build` — clean (31 modules, 210KB)
 
 ---
 

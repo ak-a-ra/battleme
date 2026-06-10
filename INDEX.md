@@ -23,7 +23,7 @@ tmp/                   ← scratch/temp (gitignored)
 |---|---|---|---|---|---|
 | 01 | `docs/design/task-01-scaffold.md` | Tauri + React project init, folder structure, .env template | — | ✅ |
 | 02 | `docs/design/task-02-database.md` | SQLite schema, migrations, seed 12 monsters + 9 status effects | 01 | ✅ |
-| 03 | `docs/design/task-03-commands.md` | Tauri invoke commands for all CRUD + settings | 02 | ⬜ |
+| 03 | `docs/design/task-03-commands.md` | Tauri invoke commands for all CRUD + settings | 02 | ✅ |
 | 04 | `docs/design/task-04-battle-engine.md` | Rust battle engine — damage calc, type chart, status (+ tests) | 03 | ⬜ |
 | 05 | `docs/design/task-05-twitch.md` | Twitch EventSub, poll creation, test mode stub | 03 | ⬜ |
 | 01-b | `docs/design/task-01b-http-bridge.md` | HTTP bridge for OBS overlay — shared state, REST endpoints | 04 | ⬜ |
