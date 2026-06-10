@@ -70,37 +70,46 @@ AppState:
 
 ## 4. Executable Task Plan
 
-## TASK 01 — Scaffold (foundation, depends on nothing)
+> **Status key:** ✅ Complete | 🔄 In progress | ⬜ Not started | ⛔ Blocked
 
-Install:
-  rustup --version      # expect rustc + cargo
-  node --version        # expect 18+
-  cargo install tauri-cli --version "^2.0"
-  npm create tauri-app@latest battleme -- --template react-ts
-  cd battleme && npm install
-  npm install tailwindcss @tailwindcss/vite lucide-react react-router-dom
-  # No shadcn/ui — use raw Tailwind + Lucide to avoid interactive prompts
+| Task | Status | Commit | Notes |
+|------|--------|--------|-------|
+| 01 — Scaffold | ✅ | `d5901f6` | Deployed w/o `rustup` (cargo only); `tsc` via `node node_modules/.bin/tsc` |
+| 02 — Database | ⬜ | — | Next |
+| 03 — Commands | ⬜ | — | |
+| 04 — Battle Engine | ⬜ | — | |
+| 05 — Twitch | ⬜ | — | |
+| 01-b — HTTP Bridge | ⬜ | — | |
+| 06 — Admin UI | ⬜ | — | |
+| 07 — Overlay Layers | ⬜ | — | |
+| 08 — Overlay UI | ⬜ | — | |
+| 09 — Draft | ⬜ | — | |
+| 10 — Dashboard | ⬜ | — | |
+| 11 — Wiki | ⬜ | — | |
+| 12 — History & Stats | ⬜ | — | |
 
-Folders:
-  src/pages/{overlay,dashboard,wiki,admin,history,stats}
-  src/components/{battle,ui}
-  src/hooks, src/lib
-  src-tauri/src/{commands,db,battle,twitch}
-  touch .gitkeep in each
+---
 
-vite.config.ts:
-  plugins: [react(), tailwindcss()]
-  server.port: 3000
+## TASK 01 — Scaffold ✅
 
-src/main.tsx stub:
-  BrowserRouter with routes for /overlay /dashboard /wiki/* /admin/* /history/* /stats
+### Done
+- `npm create tauri-app@latest` with react-ts template
+- deps: tailwindcss, @tailwindcss/vite, lucide-react, react-router-dom
+- All folder dirs + `.gitkeep` files
+- `vite.config.ts` with `react()`, `tailwindcss()`, port 3000
+- `src/main.tsx` with react-router stubs for all routes
+- `src/App.tsx` nav layout with Outlet
+- `.env.example` with 4 vars, `.gitignore` with `.env` + `target/`
+- Git init + commit `d5901f6`
 
-Env:
-  .env.example with TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TWITCH_CHANNEL_NAME, ANTHROPIC_API_KEY
-  gitignore add .env and target/
+### Verified
+- `src-tauri/cargo check` — clean
+- `vite build` (via `node node_modules/.bin/tsc && node node_modules/.bin/vite build`) — 31 modules, 210KB JS
+- Rust: serde + serde_json pre-loaded in Cargo.toml
 
-Commit:
-  git init; git add.; git commit -m "feat: initial BattleMe scaffold"
+### Note
+- No `rustup` on this dev machine; `cargo` available directly
+- `tsc` not in PATH; use `node node_modules/.bin/tsc`
 
 ---
 
