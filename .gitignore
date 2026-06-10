@@ -1,12 +1,14 @@
-# Rust
-target/
-*.lock
-
-# Node
+# Dependencies
 node_modules/
 
-# Env
+# Build output
+dist/
+
+# Environment
 .env
+
+# Rust build
+src-tauri/target/
 
 # IDE
 .vscode/
@@ -16,10 +18,5 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Temp
+# Temp / scratch
 tmp/
-
-# Build artifacts
-*.exe
-*.msi
-battleme.db

@@ -1,0 +1,8 @@
+{
+  "identifier": "default",
+  "description": "Default capability for BattleMe",
+  "windows": ["main"],
+  "permissions": [
+    "core:default"
+  ]
+}
