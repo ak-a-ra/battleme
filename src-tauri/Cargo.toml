@@ -20,6 +20,7 @@ rusqlite = { version = "0.31", features = ["bundled"] }
 tokio = { version = "1", features = ["full"] }
 dotenvy = "0.15"
 rand = "0.8"
+tiny_http = "0.12"
 
 [profile.release]
 strip = true

@@ -8,6 +8,7 @@ mod commands;
 mod db;
 mod battle;
 mod twitch;
+mod bridge;
 
 use std::sync::{Arc, RwLock};
 use tauri::Manager;
@@ -20,8 +21,17 @@ pub struct AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Create shared battle state BEFORE the builder so the bridge and AppState
+    // can both clone the same Arc (cheap refcount bump).
+    let battle_state: Arc<RwLock<battle::types::BattleState>> =
+        Arc::new(RwLock::new(battle::types::BattleState::default()));
+
     tauri::Builder::default()
-        .setup(|app| {
+        .setup(move |app| {
+            // Start HTTP bridge first (background thread, non-blocking).
+            // Degrades gracefully if port is in use.
+            bridge::start(battle_state.clone());
+
             // Resolve DB path: app_data_dir in production, CWD as dev fallback.
             let db_path = {
                 let mut path = app.path().app_data_dir().expect("Failed to resolve app data dir");
@@ -37,7 +47,7 @@ pub fn run() {
 
             app.manage(AppState {
                 db: tokio::sync::Mutex::new(conn),
-                battle_state: Arc::new(RwLock::new(battle::types::BattleState::default())),
+                battle_state: battle_state.clone(),
             });
 
             Ok(())
