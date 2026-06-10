@@ -6,7 +6,7 @@
 
 **Architecture:** React pages call Tauri invoke commands. LLM generation is a Rust command that calls Anthropic API, returns JSON stats, streamer edits before saving.
 
-**Tech Stack:** React, shadcn/ui, Tauri invoke, Anthropic API (reqwest)
+**Tech Stack:** React, Tailwind, Lucide, Tauri invoke, Anthropic API (reqwest)
 
 ---
 

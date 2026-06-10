@@ -4,20 +4,23 @@
 
 **Goal:** Expose all DB operations and battle logic to React via Tauri invoke commands.
 
-**Architecture:** Each command is a Rust function tagged `#[tauri::command]`. React calls them via `invoke('command_name', args)`. State is passed via AppState using a Mutex-wrapped DB connection.
+**Architecture:** Each command is a Rust function tagged `#[tauri::command]`. React calls them via `invoke('command_name', args)`. State is passed via AppState using a `tokio::sync::Mutex`-wrapped DB connection (not `std::sync::Mutex` — needed for async safety across `.await` points). A shared `Arc<RwLock<BattleState>>` is also passed for the HTTP bridge.
 
-**Tech Stack:** Tauri v2, rusqlite, serde_json
+**Tech Stack:** Tauri v2, tokio, rusqlite, serde_json
 
 ---
 
 ### Step 1: Set up AppState with DB connection
 ```rust
 // src-tauri/src/main.rs
-use std::sync::Mutex;
+use tokio::sync::Mutex;   // tokio::sync::Mutex for async safety
+use std::sync::{Arc, RwLock};
 use rusqlite::Connection;
+use crate::battle::types::BattleState;
 
 pub struct AppState {
     pub db: Mutex<Connection>,
+    pub battle_state: Arc<RwLock<BattleState>>,
 }
 ```
 
@@ -186,6 +189,10 @@ tauri::Builder::default()
     .run(tauri::generate_context!())
     .unwrap();
 ```
+
+Note: In async commands, acquire the Mutex with `.lock().await` instead of `.lock().unwrap()`.
+
+> **Important:** Do NOT hold the Mutex across `.await` points. Access DB in short sync blocks, release, then await.
 
 ---
 

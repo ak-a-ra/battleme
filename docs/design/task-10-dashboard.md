@@ -4,9 +4,9 @@
 
 **Goal:** Build the streamer's battle control dashboard — start battle, pick moves, surrender, configure per-round settings.
 
-**Architecture:** React page with battle state machine. Communicates with Rust via invoke for battle actions. Receives battle state updates via Tauri events. Also emits state updates to overlay via Tauri events.
+**Architecture:** React page with battle state machine. Communicates with Rust via invoke for battle actions. After each turn resolution, battle state is written to `Arc<RwLock<BattleState>>` (shared with the HTTP bridge). The overlay picks up changes by polling the bridge — no `emit` to overlay needed.
 
-**Tech Stack:** React, Tauri invoke/emit, useTwitchPoll hook
+**Tech Stack:** React, Tauri invoke, useTwitchPoll hook, Arc<RwLock>
 
 ---
 
@@ -112,7 +112,8 @@ export function MoveSelector({ monster, onSelect, disabled }) {
 // 2. Get streamer's chosen ability (already selected)
 // 3. invoke('resolve_turn', { battleState, streamerMove, chatMove })
 // 4. Receive updated BattleState
-// 5. emit 'battle-state-update' → overlay animates
+// 5. Write updated state to Arc<RwLock<BattleState>> via invoke('update_battle_state', ...)
+//    → overlay picks it up on next fetch poll
 // 6. Check for KOs, winner, transition phase accordingly
 ```
 
@@ -123,7 +124,7 @@ export function MoveSelector({ monster, onSelect, disabled }) {
 // "Surrender" button visible during poll_active and turn_end phases
 // Shows confirmation modal: "Surrender this round?"
 // On confirm: invoke('end_battle', { winner: 'chat' })
-// emit 'battle-state-update' with winner = 'chat'
+// Also write to Arc<RwLock<BattleState>> via invoke('update_battle_state', ...)
 // Log to DB, transition to post_battle phase
 ```
 
@@ -132,7 +133,12 @@ export function MoveSelector({ monster, onSelect, disabled }) {
 ### Step 8: Copy OBS URL button
 ```tsx
 // In dashboard header
-<button onClick={() => navigator.clipboard.writeText('http://localhost:3000/overlay')}>
+// Dev mode: port 3000 (Vite), Prod mode: port 38021 (tiny_http serves overlay static files)
+const OBS_URL = import.meta.env.PROD
+  ? 'http://localhost:38021/overlay'
+  : 'http://localhost:3000/overlay'
+
+<button onClick={() => navigator.clipboard.writeText(OBS_URL)}>
   📋 Copy OBS URL
 </button>
 ```
@@ -150,8 +156,28 @@ export function MoveSelector({ monster, onSelect, disabled }) {
 
 ---
 
-### Step 10: Save battle result to DB
+### Step 10: Update_battle_state command
+
 ```rust
+// src-tauri/src/commands/battle.rs (add)
+#[tauri::command]
+pub fn update_battle_state(
+    state: State<AppState>,
+    new_state: BattleState,
+) {
+    let mut bs = state.battle_state.write().unwrap();
+    *bs = new_state;
+}
+```
+
+Called from React after each turn resolution or surrender:
+```ts
+await invoke('update_battle_state', { newState: updatedBattleState })
+```
+
+---
+
+### Step 11: Save battle result to DB
 // src-tauri/src/commands/battle.rs
 #[tauri::command]
 pub fn save_battle_result(
@@ -177,7 +203,7 @@ pub fn save_battle_result(
 
 ---
 
-### Step 11: Commit
+### Step 12: Commit
 ```bash
 git add .
 git commit -m "feat: dashboard — battle control, move selector, surrender, copy OBS URL, test mode"

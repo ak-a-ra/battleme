@@ -6,7 +6,7 @@
 
 **Architecture:** Tauri wraps a React frontend served locally. Rust handles backend logic, SQLite, and Twitch. React handles all UI including overlay and wiki.
 
-**Tech Stack:** Tauri v2, React 18, TypeScript, Vite, TailwindCSS, shadcn/ui
+**Tech Stack:** Tauri v2, React 18, TypeScript, Vite, TailwindCSS, Lucide icons
 
 ---
 
@@ -39,7 +39,7 @@ Expected: project folder created with `src/` and `src-tauri/`
 ```bash
 npm install tailwindcss @tailwindcss/vite
 npm install lucide-react
-npx shadcn@latest init
+# No shadcn/ui — use raw Tailwind + Lucide to avoid interactive prompts
 ```
 
 ---

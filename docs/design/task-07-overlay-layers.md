@@ -4,9 +4,9 @@
 
 **Goal:** Build the 4-layer overlay rendered at /overlay. OBS points a browser source here at 1920x1080.
 
-**Architecture:** Each layer is an absolutely positioned div stacked via z-index. Layer 1 = background, Layer 2 = sprites, Layer 3 = environment/parallax, Layer 4 = UI. Sprite animations via CSS keyframes + spritesheet background-position stepping.
+**Architecture:** Each layer is an absolutely positioned div stacked via z-index. Layer 1 = background, Layer 2 = sprites, Layer 3 = environment/parallax, Layer 4 = UI. All battle state comes from HTTP polling (`useBattleState`), NOT from Tauri IPC — OBS browser sources cannot use IPC. Sprite animations via CSS keyframes + background-position.
 
-**Tech Stack:** React, CSS, Tauri event listener
+**Tech Stack:** React, CSS, HTTP fetch polling
 
 ---
 
@@ -40,6 +40,9 @@ export const Z = {
 
 // Overlay is footer-style — sprites live in bottom 30% of screen
 export const BATTLE_FLOOR_Y = 720  // px from top where ground line sits
+
+export const BRIDGE_URL = 'http://localhost:38021'
+export const POLL_INTERVAL = 1000  // 1s polling for battle state
 ```
 
 ---
@@ -109,9 +112,21 @@ export function EnvironmentLayer() {
 ---
 
 ### Step 5: Sprite component (single monster or hunter)
+
+**Placeholder sprites:** No image files needed. Render a colored rectangle with the first letter of the sprite ID. Real pixel art can replace later without code changes.
+
 ```tsx
 // src/pages/overlay/Sprite.tsx
 type SpriteState = 'idle' | 'attack' | 'damaged' | 'ko'
+
+const PALETTE: Record<string, string> = {
+  emberwolf: '#ff4400', flamecrow: '#ff8800',
+  tidalfin: '#0088ff',  stormray: '#00ccff',
+  stoneback: '#885522', mudcrawler: '#664422',
+  galebird: '#88ddff',  driftfang: '#66bbcc',
+  voidshade: '#442266', grimspawn: '#553377',
+  dawnwing: '#ffdd44',  solarclaw: '#ffcc00',
+}
 
 interface SpriteProps {
   spriteId: string
@@ -122,29 +137,28 @@ interface SpriteProps {
 }
 
 export function Sprite({ spriteId, state, isActive, isKo, flipX }: SpriteProps) {
-  // Spritesheets live at /public/sprites/{spriteId}.png
-  // Each state = column offset in spritesheet
-  // CSS animation steps through frames at 8fps
-  const stateOffsets: Record<SpriteState, number> = {
-    idle: 0, attack: 1, damaged: 2, ko: 3
-  }
+  const isIdle = state === 'idle'
   return (
     <div style={{
       width: 64, height: 64,
-      backgroundImage: `url(/sprites/${spriteId}.png)`,
-      backgroundPositionY: `-${stateOffsets[state] * 64}px`,
+      backgroundColor: PALETTE[spriteId] || '#888',
+      borderRadius: 8,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: 24, fontWeight: 'bold', color: '#fff',
       filter: isKo ? 'grayscale(100%) opacity(50%)' : isActive ? 'drop-shadow(0 0 8px #fff)' : 'none',
       transform: flipX ? 'scaleX(-1)' : 'none',
       imageRendering: 'pixelated',
-      animation: state === 'idle' ? 'sprite-idle 0.8s steps(4) infinite' : undefined,
-    }} />
+      animation: isIdle ? 'sprite-idle 0.8s steps(4) infinite' : undefined,
+    }}>
+      {spriteId[0].toUpperCase()}
+    </div>
   )
 }
 ```
 ```css
 @keyframes sprite-idle {
-  from { background-position-x: 0; }
-  to   { background-position-x: -256px; } /* 4 frames × 64px */
+  from { opacity: 0.6; }
+  to   { opacity: 1; }
 }
 ```
 
@@ -206,23 +220,50 @@ export function RunningScene({ hunterSpriteId, onComplete }: RunningSceneProps) 
 
 ---
 
-### Step 8: Connect overlay to battle state via Tauri events
+### Step 8: Wire overlay to HTTP bridge (not Tauri IPC)
+
+The overlay uses `useBattleState()` from Task 01-b to poll battle state. No `listen()` calls needed — OBS browser sources cannot use Tauri IPC:
+
 ```tsx
 // src/pages/overlay/Overlay.tsx
-import { listen } from '@tauri-apps/api/event'
+import { useBattleState } from '../../hooks/useBattleState'
 
-useEffect(() => {
-  const unlisten = listen('battle-state-update', (e) => {
-    setBattleState(e.payload as BattleState)
-  })
-  return () => { unlisten.then(f => f()) }
-}, [])
+export default function Overlay() {
+  const battle = useBattleState()
+
+  if (!battle) {
+    return <div style={{ width: 1920, height: 1080, background: '#000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      Waiting for battle...
+    </div>
+  }
+
+  return (
+    <div style={{ width: 1920, height: 1080, position: 'relative', overflow: 'hidden', background: '#000' }}>
+      <BackgroundLayer src={battle.background} />
+      <SpriteLayer battle={battle} />
+      <EnvironmentLayer />
+      <UILayer battle={battle} />
+    </div>
+  )
+}
 ```
 
 ---
 
-### Step 9: Commit
+### Step 9: Overlay OBS prod URL
+
+```tsx
+// Dashboard "Copy OBS URL" button:
+const OBS_URL = import.meta.env.PROD
+  ? 'http://localhost:38021/overlay'     // tiny_http serves overlay in prod
+  : 'http://localhost:3000/overlay'       // Vite dev server in dev
+```
+
+---
+
+### Step 10: Commit
+
 ```bash
 git add .
-git commit -m "feat: overlay layer system — background, environment, sprites, running scene"
+git commit -m "feat: overlay layer system — background, environment, sprites, running scene, HTTP bridge integration"
 ```

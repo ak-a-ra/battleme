@@ -271,6 +271,7 @@ mod db;
 
 fn main() {
     let conn = rusqlite::Connection::open("battleme.db").unwrap();
+    // ^ Dev fallback — in production use app.path().app_data_dir() instead.
     db::migrations::run(&conn);
     db::seed::run_if_empty(&conn);
 

@@ -4,7 +4,9 @@
 
 **Goal:** Connect to Twitch via EventSub, create polls per turn, receive poll results.
 
-**Architecture:** Rust handles Twitch OAuth app token (client credentials flow), creates polls via Twitch API, listens for poll end events via EventSub WebSocket. Results emitted to React via Tauri events.
+**Architecture:** Rust handles Twitch OAuth app token (client credentials flow), creates polls via Twitch API, listens for poll end events via EventSub WebSocket. Results emitted to React via Tauri events (used by Dashboard, which is a Tauri window).
+
+**Important:** The `listen()` flow only works in the Tauri window (Dashboard). The OBS overlay uses a separate HTTP bridge (see Task 01-b) — not this hook.
 
 **Tech Stack:** reqwest, tokio, tauri::Emitter, .env credentials
 
@@ -94,16 +96,30 @@ pub async fn create_poll(
 
 ---
 
-### Step 5: EventSub WebSocket listener
+### Step 5: EventSub WebSocket listener + subscription
 ```rust
 // src-tauri/src/twitch/eventsub.rs
-// Connect to wss://eventsub.wss.twitch.tv/ws
-// Subscribe to channel.poll.end event
-// On poll end: emit result to React via tauri::Emitter
+// Full flow:
+// 1. Connect WebSocket to wss://eventsub.wss.twitch.tv/ws
+// 2. Receive session_welcome message → extract session_id
+// 3. POST /helix/eventsub/subscriptions with:
+//    {
+//      "type": "channel.poll.end",
+//      "version": "1",
+//      "condition": { "broadcaster_user_id": "..." },
+//      "transport": { "method": "websocket", "session_id": "..." }
+//    }
+// 4. On poll.end notification → emit "poll-result" event to frontend
 
-pub async fn listen(app_handle: tauri::AppHandle, token: String, client_id: String) {
-    // WebSocket connect → receive session_welcome → subscribe to poll.end
-    // On poll.end notification → emit "poll-result" event to frontend
+pub async fn listen(
+    app_handle: tauri::AppHandle,
+    token: String,
+    client_id: String,
+    broadcaster_id: String,  // needed for subscription condition
+) {
+    // WebSocket connect → receive session_welcome → get session_id
+    // POST /helix/eventsub/subscriptions with the session_id
+    // On poll.end notification → emit result
     use tauri::Emitter;
     app_handle.emit("poll-result", winning_choice).unwrap();
 }
@@ -123,6 +139,7 @@ pub async fn start_poll(
     duration_secs: u32,
 ) -> String {
     // load .env creds → get token → create poll → start eventsub listener
+    // NOTE: use tokio::sync::Mutex for DB — release lock before .await points
 }
 
 #[tauri::command]
@@ -130,6 +147,15 @@ pub async fn get_broadcaster_id(state: State<AppState>) -> String {
     // GET /helix/users?login=CHANNEL_NAME → return broadcaster id
 }
 ```
+
+> **Async safety:** Access DB in short sync blocks and release the `tokio::sync::Mutex` before any `.await`:
+> ```rust
+> let settings = {
+>     let db = state.db.lock().await;
+>     db.query(...)
+> };  // lock dropped here
+> let token = get_app_token(settings.client_id, settings.client_secret).await; // safe
+> ```
 
 ---
 
@@ -156,11 +182,14 @@ export function useTwitchPoll() {
 ### Step 8: Test mode stub
 ```rust
 // In start_poll command: if TWITCH_CLIENT_ID is empty, emit fake poll result after duration
+// This simulates a Twitch poll without needing credentials — overlay still works
 if client_id.is_empty() {
     tokio::time::sleep(Duration::from_secs(duration_secs as u64)).await;
     app.emit("poll-result", "Basic Attack").unwrap();
 }
 ```
+
+> **Note:** Dashboard listens for 'poll-result' via `useTwitchPoll()`. The overlay doesn't need this — it polls the HTTP bridge (Task 01-b) for battle state.
 
 ---
 

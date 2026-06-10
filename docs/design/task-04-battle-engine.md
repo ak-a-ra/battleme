@@ -263,8 +263,169 @@ pub fn resolve_turn(
 
 ---
 
-### Step 9: Commit
+### Step 9: Unit tests (add #[cfg(test)] to each module)
+
+**types.rs:**
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_type_multiplier_fire_vs_earth() {
+        assert_eq!(type_multiplier("Fire", "Earth"), 1.5);
+    }
+
+    #[test]
+    fn test_type_multiplier_fire_vs_water() {
+        assert_eq!(type_multiplier("Fire", "Water"), 0.5);
+    }
+
+    #[test]
+    fn test_type_multiplier_fire_vs_light() {
+        assert_eq!(type_multiplier("Fire", "Light"), 1.0);
+    }
+
+    #[test]
+    fn test_type_multiplier_dark_vs_dark() {
+        assert_eq!(type_multiplier("Dark", "Dark"), 0.5);
+    }
+}
+```
+
+**damage.rs:**
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::battle::types::BattleMon;
+
+    fn make_mon(dex: i64, agi: i64, str_stat: i64, int_stat: i64, luck: i64) -> BattleMon {
+        BattleMon {
+            id: 1, name: "Test".into(), monster_type: "Fire".into(),
+            hp: 100, max_hp: 100, mp: 50, max_mp: 50,
+            str_stat, agi, dex, int_stat, luck,
+            active_status: None, is_ko: false,
+        }
+    }
+
+    #[test]
+    fn test_damage_dealt() {
+        let atk = make_mon(20, 10, 15, 10, 10);
+        let def = make_mon(10, 10, 10, 10, 10);
+        // Multiple runs to check damage is in expected range
+        for _ in 0..100 {
+            let result = calculate(&atk, &def, 50, "physical", 1.0);
+            if !result.is_crit && result.damage > 0 {
+                // physical dmg = (50 + 15) * variance(0.8-1.2) * 1.0 * 1.0
+                // range: 52..78
+                assert!(result.damage >= 26 && result.damage <= 78,
+                    "damage {} out of range", result.damage);
+                break;
+            }
+        }
+    }
+
+    #[test]
+    fn test_miss_returns_zero() {
+        let atk = make_mon(1, 10, 15, 10, 10); // low dex = high miss
+        let def = make_mon(10, 1, 10, 10, 10);
+        let mut found_miss = false;
+        for _ in 0..200 {
+            let result = calculate(&atk, &def, 50, "physical", 1.0);
+            if result.damage == 0 { found_miss = true; break; }
+        }
+        assert!(found_miss, "expected at least one miss with dex=1");
+    }
+}
+```
+
+**status.rs:**
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::battle::types::{BattleMon, StatusState};
+
+    fn make_mon(hp: i64, max_hp: i64, status: Option<StatusState>) -> BattleMon {
+        BattleMon {
+            id: 1, name: "Test".into(), monster_type: "Fire".into(),
+            hp, max_hp, mp: 50, max_mp: 50,
+            str_stat: 10, agi: 10, dex: 10, int_stat: 10, luck: 10,
+            active_status: status, is_ko: false,
+        }
+    }
+
+    #[test]
+    fn test_burn_deals_damage() {
+        let mut mon = make_mon(100, 100, Some(StatusState {
+            name: "Burn".into(), turns_left: 3, intensity: 0,
+        }));
+        let dmg = tick(&mut mon);
+        assert!(dmg > 0, "burn should deal damage");
+        assert_eq!(mon.active_status.as_ref().unwrap().turns_left, 2);
+    }
+
+    #[test]
+    fn test_status_expires() {
+        let mut mon = make_mon(100, 100, Some(StatusState {
+            name: "Stun".into(), turns_left: 1, intensity: 0,
+        }));
+        tick(&mut mon);
+        assert!(mon.active_status.is_none(), "status should expire");
+    }
+
+    #[test]
+    fn test_poison_intensifies() {
+        let mut mon = make_mon(200, 200, Some(StatusState {
+            name: "Poison".into(), turns_left: 4, intensity: 0,
+        }));
+        tick(&mut mon);
+        assert_eq!(mon.active_status.as_ref().unwrap().intensity, 1);
+    }
+}
+```
+
+**engine.rs:**
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::battle::types::BattleMon;
+
+    fn make_mon(agi: i64) -> BattleMon {
+        BattleMon {
+            id: 1, name: "Test".into(), monster_type: "Fire".into(),
+            hp: 100, max_hp: 100, mp: 50, max_mp: 50,
+            str_stat: 10, agi, dex: 10, int_stat: 10, luck: 10,
+            active_status: None, is_ko: false,
+        }
+    }
+
+    #[test]
+    fn test_higher_agi_goes_first() {
+        let fast = make_mon(99);
+        let slow = make_mon(1);
+        let results: Vec<&str> = (0..100).map(|_| {
+            let (first, _) = resolve_turn_order(&fast, &slow);
+            first
+        }).collect();
+        let fast_count = results.iter().filter(|&&r| r == "streamer").count();
+        assert!(fast_count > 50, "higher AGI should go first more often");
+    }
+}
+```
+
+### Verification
+```bash
+cargo test
+# Expected: all unit tests pass
+```
+
+---
+
+### Step 10: Commit
 ```bash
 git add .
-git commit -m "feat: battle engine — damage calc, type chart, status effects, turn order"
+git commit -m "feat: battle engine — damage calc, type chart, status effects, turn order, unit tests"
 ```
