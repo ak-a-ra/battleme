@@ -108,4 +108,35 @@ mod tests {
             .unwrap();
         assert_eq!(count, 12, "second run should not duplicate rows");
     }
+
+    #[test]
+    fn test_file_backed_db_init() {
+        let path = "test_battleme.db";
+        // Clean up from any previous failed run
+        let _ = std::fs::remove_file(path);
+
+        let conn = Connection::open(path).unwrap();
+        crate::db::migrations::run(&conn);
+        run_if_empty(&conn);
+        drop(conn);
+
+        // Verify via a new connection to the same file
+        let conn2 = Connection::open(path).unwrap();
+        let monster_count: i64 = conn2
+            .query_row("SELECT COUNT(*) FROM monsters", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(monster_count, 12);
+        let status_count: i64 = conn2
+            .query_row("SELECT COUNT(*) FROM status_effects", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(status_count, 9);
+        let hunter_count: i64 = conn2
+            .query_row("SELECT COUNT(*) FROM hunters", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(hunter_count, 1);
+        drop(conn2);
+
+        // Cleanup
+        std::fs::remove_file(path).unwrap();
+    }
 }

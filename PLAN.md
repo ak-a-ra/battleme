@@ -75,7 +75,7 @@ AppState:
 | Task | Status | Commit | Notes |
 |------|--------|--------|-------|
 | 01 — Scaffold | ✅ | `d5901f6` | Deployed w/o `rustup` (cargo only); `tsc` via `node node_modules/.bin/tsc` |
-| 02 — Database | ✅ | `pending` | CWD path dev fallback; 2 unit tests for seed |
+| 02 — Database | ✅ | `4d0e919` | CWD path dev fallback; 2 unit tests for seed |
 | 03 — Commands | ⬜ | — | |
 | 04 — Battle Engine | ⬜ | — | |
 | 05 — Twitch | ⬜ | — | |
@@ -129,13 +129,12 @@ AppState:
 
 ### Verified
 - `cargo check` — clean (5 dead_code warnings from unused models, expected)
-- `cargo test --lib` — 2/2 pass
+- `cargo test --lib` — 3/3 pass (in-memory seed, idempotency, file-backed DB init with real SQLite file)
 - `vite build` — clean
-- `cargo build --bin battleme` — linker error on Termux (no Android GUI APIs), but `cargo check` confirms lib compiles
 
 ### Note
 - DB path: `./battleme.db` (CWD dev fallback). Switched to `app_data_dir` in task-03 when AppState is introduced.
-- Linker error for Tauri binary is expected on Termux — DB logic validated via in-memory unit tests
+- File-backed test `test_file_backed_db_init` confirms migrations+seed work against a real on-disk SQLite file, not just in-memory.
 
 ---
 
