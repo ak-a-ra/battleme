@@ -1,1 +1,1 @@
-// battle module — battle engine (task 04+)
+pub mod types;
