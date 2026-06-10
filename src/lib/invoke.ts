@@ -33,4 +33,8 @@ export const api = {
   getSettings: () => invoke('get_settings'),
   saveSettings: (settings: Record<string, string>) =>
     invoke('save_settings', { settings }),
+
+  // Battle
+  resolveTurn: (streamerMove: any, chatMove: any) =>
+    invoke('resolve_turn', { streamerMove, chatMove }),
 }

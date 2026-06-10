@@ -62,6 +62,7 @@ pub fn run() {
             commands::status_effects::delete_status_effect,
             commands::settings::get_settings,
             commands::settings::save_settings,
+            commands::battle::resolve_turn,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

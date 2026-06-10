@@ -77,7 +77,7 @@ AppState:
 | 01 — Scaffold | ✅ | `d5901f6` | Deployed w/o `rustup` (cargo only); `tsc` via `node node_modules/.bin/tsc` |
 | 02 — Database | ✅ | `4d0e919` | CWD path dev fallback; 2 unit tests for seed |
 | 03 — Commands | ✅ | `40b3461` | 19 commands; AppState with tokio::sync::Mutex; Tauri v2 Result requirement; app_data_dir |
-| 04 — Battle Engine | ⬜ | — | |
+| 04 — Battle Engine | ✅ | `pending` | 4 modules, 19 unit tests, no DB dependency |
 | 05 — Twitch | ⬜ | — | |
 | 01-b — HTTP Bridge | ⬜ | — | |
 | 06 — Admin UI | ⬜ | — | |
@@ -168,64 +168,30 @@ Commit: `40b3461`
 
 ---
 
-## TASK 04 — Battle Engine (pure Rust, no Tauri Depend)
+## TASK 04 — Battle Engine ✅
 
-Dep: rand = "0.8"
-Structure: src-tauri/src/battle/{mod,types,damage,status,engine}.rs
+### Summary
+- **battle/types.rs**: BattleMon, StatusState, TurnResult, AbilityInput, BattleState (with Default), type_multiplier fn
+- **battle/damage.rs**: DamageResult, calculate() — stat-based, 80-120% variance, crit (DEX/LUCK scaling), physical miss, dodge
+- **battle/status.rs**: tick() — Burn/Poison/Bleeding DoT, decrement/expire; apply() — Freeze/Slow mutual exclusion, no-stack
+- **battle/engine.rs**: resolve_turn_order() — AGI + rng(0..2); resolve() — chain: status ticks → turn order → 2 attacks → KO/winner detection
+- **commands/battle.rs**: resolve_turn command wiring engine to Tauri
+- **19 unit tests** total (3 existing DB + 5 types + 3 damage + 5 status + 3 engine)
+- **`commands/battle.rs`** — resolve_turn async command
+- **`resolve_turn`** registered in lib.rs
+- **`resolveTurn`** added to src/lib/invoke.ts
 
-src-tauri/src/battle/types.rs:
-  struct BattleMon { id, name, monster_type, hp, max_hp, mp, max_mp, str_stat, agi, dex, int_stat, luck, active_status: Option<StatusState>, is_ko }
-  struct StatusState { name, turns_left, intensity }
-  struct TurnResult { attacker_side, attacker_name, ability_used, damage_dealt, is_crit, status_inflicted: Option<String>, target_hp_after, target_ko, float_text }
-  struct BattleState { streamer_team, chat_team, turn_number, winner: Option<String>, turn_log: Vec<TurnResult> }
+### Grilled decisions
+1. AbilityInput → flattened value object (no DB ref) ✅
+2. Status proc → 30% flat on hit ✅
+3. Active mon → caller provides both sides ✅
+4. Hunter → deferred ✅
+5. resolve() → mutates BattleState in place ✅
 
-src-tauri/src/battle/types.rs — type_multiplier(attacker, defender) -> f64:
-  (Fire, Earth|Wind) => 1.5;  (Water, Fire|Earth) => 1.5;  (Earth, Water) => 1.5;  (Wind, Water|Earth) => 1.5
-  (Dark, Light)|(Light, Dark) => 1.5
-  (Fire, Water) => 0.5; (Water, Wind) => 0.5; (Earth, Fire|Wind) => 0.5; (Wind, Fire) => 0.5
-  (Dark, Dark)|(Light, Light) => 0.5
-  _ => 1.0
-
-src-tauri/src/battle/damage.rs — calculate(attacker, defender, base_power, ability_type, type_multiplier):
-  rng.gen_range(0.80..=1.20) variance
-  stat = int if magic else str
-  crit_chance = dex / 200.0 (cap 0.95), crit_mult = 1.5 + luck * 0.005
-  physical hit_chance = (dex / 100.0).min(0.99); magic = 1.0
-  dodge_chance = (defender.agi / 300.0).min(0.40)
-  miss/dodge -> 0 dmg
-  raw = (base_power + stat) * variance * crit_mult * type_multiplier
-  return DamageResult { damage: round(raw), is_crit }
-
-src-tauri/src/battle/status.rs:
-  tick(mon) -> i64
-    Burn: 5 + max_hp/20
-    Poison: base + base * intensity/10; intensity += 1 on apply
-    Bleeding: max_hp/10
-    others: 0
-    decrement turns_left, clear if 0
-  apply(mon, status_name, duration)
-    Freeze <-> Slow mutually exclusive (replace); others no-stack; others = identity
-    set active_status (intensity = 0)
-
-src-tauri/src/battle/engine.rs:
-  resolve_turn_order(a, b): a.agi + rng 0..2 vs b.agi + rng 0..2; higher first. Returns (streamer, chat) or (chat, streamer).
-  Full turn resolution logic applies status ticks, status infliction on hit, damage calc, KO checks, winner detection.
-
-Separate commands/battle.rs file invoke from React, calling battle:: functions.
-
-### Unit tests (add after implementing each module)
-Add `#[cfg(test)]` modules in types.rs, damage.rs, status.rs, engine.rs:
-- type_multiplier: Fire→Earth=1.5, Dark→Dark=0.5, Fire→Light=1.0
-- damage calc: miss returns 0, dodge returns 0, crit sets is_crit=true
-- status tick: Burn reduces HP, Poison intensity increments, status expires at 0 turns
-- turn order: higher AGI goes first (wrap in deterministic test using seeded RNG)
-
-### Verification
-```bash
-cargo test          # all #[cfg(test)] pass
-```
-
-Commit: "feat: battle engine — damage calc, type chart, status effects, turn order, unit tests"
+### Verified
+- `cargo check` — clean
+- `cargo test --lib` — 19/19 pass
+- `vite build` — clean
 
 ---
 
