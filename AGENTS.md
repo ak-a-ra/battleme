@@ -90,6 +90,34 @@ Execute tasks strictly in order. Each depends on the previous.
 | 09 | Draft | Streamer lineup, 3-poll chat draft, RNG wildcard | 05 |
 | 10 | Dashboard | Battle control, move selector, surrender, settings | 04, 01-b, 09 |
 
+## Issue Log
+
+See `ISSUES.md` for known environment limitations, workarounds, and bugs encountered during implementation.
+
+## Dev Environment Rules
+
+This project is developed on Termux (Android) which has constraints. Follow these rules:
+
+### Rust
+- **No `rustup`** — `cargo` available directly; don't install via rustup
+- **Tauri binary won't link** — `ALooper_pollAll` undefined on Android; Tauri requires desktop GUI APIs
+  - Verification: use `cargo check` + `cargo test --lib`, NOT `cargo run` or `cargo build --bin`
+  - DB logic validated via file-backed tests, not by running the binary
+- **Stale `.rlib` artifacts** (e.g. `libtest.rlib`) can leak into project root; add to `.gitignore` immediately
+
+### TypeScript / Node
+- **`tsc` not in PATH** — use `node node_modules/.bin/tsc` instead of bare `tsc`
+- **Build:** `node node_modules/.bin/tsc && node node_modules/.bin/vite build`
+
+### Testing Best Practices
+- **All Rust modules with logic** must have `#[cfg(test)]` unit tests (in-memory DB for speed)
+- **DB tests must include at least one file-backed test** to confirm migrations+seed work on real SQLite files, not just in-memory
+- **Never rely on binary execution for verification** — use `cargo test --lib` and `cargo check`
+
+### DB Path Convention
+- Dev: `./battleme.db` (CWD fallback)
+- Production: `app.path().app_data_dir()` — switch when Tauri app handle is available (task-03)
+
 ## Key Design Decisions
 
 - **DB path:** Uses `app.path().app_data_dir()` (not CWD) for production stability
@@ -116,4 +144,5 @@ Do NOT implement:
 - **Every Rust module with logic** should have `#[cfg(test)]` unit tests
 - **Commit after each task** with conventional commit message
 - **Verification per task:** `cargo check`, `cargo test`, `npm run dev`, `curl localhost:38021/api/battle-state`
+- **Document issues:** Update `ISSUES.md` when new workarounds or bugs are discovered
 - **Sprite fallback** works without any image files — all overlay code testable in dev

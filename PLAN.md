@@ -657,8 +657,12 @@ React frontend (src/)
 After each task:
   cargo check in src-tauri
   cargo test         # unit tests for battle engine + any other #[cfg(test)]
-  cargo build --release
   npm run dev works, overlay at /overlay loads in browser
   sqlite3 battleme.db verified: 12 monsters, 1 hunter, 9 status effects
   curl http://localhost:38021/api/battle-state returns JSON (after Task 01-b)
   Test mode: poll cycles and overlay animates without Twitch creds
+
+## 9. Issue Log
+
+See `ISSUES.md` for known environment limitations and workarounds (especially Termux-specific constraints).
+Update `ISSUES.md` whenever a new issue or workaround is discovered during implementation.

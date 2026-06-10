@@ -9,6 +9,7 @@
 ```
 AGENTS.md              ← project context for AI agents
 PLAN.md                ← master implementation plan
+ISSUES.md              ← known issues & workarounds
 docs/design/           ← task specs (01–13)
 docs/adr/              ← architecture decision records
 tmp/                   ← scratch/temp (gitignored)
