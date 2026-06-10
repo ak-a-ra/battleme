@@ -77,7 +77,7 @@ AppState:
 | 01 — Scaffold | ✅ | `d5901f6` | Deployed w/o `rustup` (cargo only); `tsc` via `node node_modules/.bin/tsc` |
 | 02 — Database | ✅ | `4d0e919` | CWD path dev fallback; 2 unit tests for seed |
 | 03 — Commands | ✅ | `40b3461` | 19 commands; AppState with tokio::sync::Mutex; Tauri v2 Result requirement; app_data_dir |
-| 04 — Battle Engine | ✅ | `pending` | 4 modules, 19 unit tests, no DB dependency |
+| 04 — Battle Engine | ✅ | `b31f1ed` | 4 modules, 19 unit tests, no DB dependency |
 | 05 — Twitch | ⬜ | — | |
 | 01-b — HTTP Bridge | ⬜ | — | |
 | 06 — Admin UI | ⬜ | — | |
