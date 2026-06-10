@@ -36,6 +36,16 @@ Known environment limitations, workarounds, and bugs encountered during implemen
 
 ---
 
+## Implementation Gotchas
+
+### 5. Tauri v2: async commands with `State` must return `Result<T, String>`
+- **Issue:** `#[tauri::command] pub async fn` that takes `tauri::State<'_, AppState>` as input must return `Result<T, String>`. Sync commands (no State, or sync fn with State) can return bare values. This is a Tauri v2 safety constraint — async commands with references must return a `Result`.
+  ```
+  error: async commands that contain references as inputs must return a `Result`
+  ```
+- **Workaround:** Return `Result<Vec<Monster>, String>`, `Result<i64, String>`, or `Result<(), String>`. Use `.map_err(|e| e.to_string())?` instead of `.expect()` in async commands with State.
+- **Affects:** task-03 onwards (all async commands taking AppState)
+
 ## Resolved Bugs
 
 ### DB init path: CWD vs `app_data_dir`
