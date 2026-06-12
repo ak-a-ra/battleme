@@ -8,6 +8,9 @@ import AdminHunters from "./pages/admin/AdminHunters";
 import AdminAbilities from "./pages/admin/AdminAbilities";
 import AdminStatus from "./pages/admin/AdminStatus";
 import AdminSettings from "./pages/admin/AdminSettings";
+import DashboardLayout from "./pages/dashboard/DashboardLayout";
+import LineupBuilder from "./pages/dashboard/LineupBuilder";
+import DraftPhase from "./pages/dashboard/DraftPhase";
 import Overlay from "./pages/overlay/Overlay";
 import "./styles.css";
 
@@ -17,7 +20,15 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: "overlay", element: <Overlay /> },
-      { path: "dashboard", element: <div>Dashboard</div> },
+      {
+        path: "dashboard",
+        element: <DashboardLayout />,
+        children: [
+          { index: true, element: <div className="text-zinc-500 p-8">Select Lineup or Draft from the sidebar.</div> },
+          { path: "lineup", element: <LineupBuilder /> },
+          { path: "draft", element: <DraftPhase /> },
+        ],
+      },
       {
         path: "wiki",
         children: [

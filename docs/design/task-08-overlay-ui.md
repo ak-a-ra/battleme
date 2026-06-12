@@ -249,6 +249,8 @@ export function UILayer({ battle, timer }: UILayerProps) {
 
 ---
 
+### Status: ✅ Implemented
+
 ### Step 8: Commit
 ```bash
 git add .

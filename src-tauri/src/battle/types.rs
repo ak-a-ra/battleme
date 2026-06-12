@@ -69,6 +69,8 @@ pub struct BattleState {
     pub turn_number: i64,
     pub winner: Option<String>,            // "streamer" | "chat" | None
     pub turn_log: Vec<TurnResult>,
+    #[serde(default)]
+    pub phase: String,                     // "idle" | "draft" | "battle" | "complete"
 }
 
 // ---------------------------------------------------------------------------

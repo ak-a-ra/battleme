@@ -29,7 +29,12 @@ pub async fn start_poll(
     if client_id.is_empty() || client_secret.is_empty() || channel_name.is_empty() {
         eprintln!("[twitch] test mode — sleep {duration_secs}s then fake result");
         tokio::time::sleep(Duration::from_secs(duration_secs as u64)).await;
-        let fallback = choices.first().cloned().unwrap_or_else(|| "Basic Attack".to_string());
+        use rand::Rng;
+        let fallback = if choices.len() > 1 {
+            choices[rand::thread_rng().gen_range(0..choices.len())].clone()
+        } else {
+            choices.first().cloned().unwrap_or_else(|| "Basic Attack".to_string())
+        };
         use tauri::Emitter;
         app.emit("poll-result", fallback.clone())
             .map_err(|e| format!("Emit failed: {e}"))?;

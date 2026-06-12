@@ -76,6 +76,52 @@ export default function Overlay() {
     )
   }
 
+  // Show draft status while chat is picking
+  if (battle.phase === 'draft') {
+    return (
+      <div style={{
+        width: 1920, height: 1080,
+        background: '#000',
+        color: '#fff',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 24,
+        fontFamily: 'monospace',
+        gap: 12,
+      }}>
+        <div style={{ fontSize: 36, fontWeight: 'bold', color: '#fbbf24' }}>Draft Phase</div>
+        <div>Chat is drafting their monsters...</div>
+        <div style={{ fontSize: 14, color: '#888' }}>Check the Dashboard to follow picks</div>
+      </div>
+    )
+  }
+
+  // Show idle phase (pre-draft) with background
+  if (battle.phase === 'idle' || (battle.streamer_team.length === 0 && battle.chat_team.length === 0)) {
+    return (
+      <div style={{
+        width: 1920, height: 1080,
+        position: 'relative',
+        overflow: 'hidden',
+        background: '#000',
+      }}>
+        <BackgroundLayer />
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexDirection: 'column', gap: 12,
+          color: '#fff', fontFamily: 'monospace',
+          zIndex: 10,
+        }}>
+          <div style={{ fontSize: 36, fontWeight: 'bold', color: '#fbbf24' }}>Waiting for battle...</div>
+          <div style={{ fontSize: 14, color: '#888' }}>Set your lineup and start the draft</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{
       width: 1920,

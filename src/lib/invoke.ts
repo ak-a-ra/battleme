@@ -52,6 +52,20 @@ export interface StatusEffect {
   visual_color: string
 }
 
+export interface StreamerLineup {
+  hunter: Hunter
+  monsters: Monster[]
+}
+
+export interface BattleState {
+  streamer_team: any[]
+  chat_team: any[]
+  turn_number: number
+  winner: string | null
+  turn_log: any[]
+  phase: string
+}
+
 /** Typed wrapper around Tauri invoke commands. */
 export const api = {
   // Monsters
@@ -95,4 +109,20 @@ export const api = {
   // Battle
   resolveTurn: (streamerMove: any, chatMove: any) =>
     invoke<any>('resolve_turn', { streamerMove, chatMove }),
+
+  // Draft
+  startPoll: (title: string, choices: string[], durationSecs: number) =>
+    invoke<string>('start_poll', { title, choices, durationSecs }),
+
+  saveStreamerLineup: (hunterId: number, monsterIds: number[]) =>
+    invoke<void>('save_streamer_lineup', { hunterId, monsterIds }),
+
+  getStreamerLineup: () =>
+    invoke<StreamerLineup | null>('get_streamer_lineup'),
+
+  setBattlePhase: (phase: string) =>
+    invoke<void>('set_battle_phase', { phase }),
+
+  startBattle: (chatMonsterIds: number[]) =>
+    invoke<BattleState>('start_battle', { chatMonsterIds }),
 }

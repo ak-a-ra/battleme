@@ -77,6 +77,10 @@ pub fn run() {
             commands::twitch::get_broadcaster_id,
             commands::abilities::unassign_ability_from_monster,
             commands::llm::generate_monster_stats,
+            commands::draft::save_streamer_lineup,
+            commands::draft::get_streamer_lineup,
+            commands::draft::set_battle_phase,
+            commands::draft::start_battle,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

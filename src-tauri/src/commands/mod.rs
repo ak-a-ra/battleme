@@ -2,6 +2,7 @@
 
 pub mod abilities;
 pub mod battle;
+pub mod draft;
 pub mod hunters;
 pub mod llm;
 pub mod monsters;

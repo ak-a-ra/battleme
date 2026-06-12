@@ -66,6 +66,14 @@ pub fn run(conn: &Connection) {
             PRIMARY KEY (hunter_id, ability_id)
         );
 
+        CREATE TABLE IF NOT EXISTS streamer_lineup (
+            id INTEGER PRIMARY KEY DEFAULT 1,
+            hunter_id INTEGER REFERENCES hunters(id),
+            slot1_monster_id INTEGER REFERENCES monsters(id),
+            slot2_monster_id INTEGER REFERENCES monsters(id),
+            slot3_monster_id INTEGER REFERENCES monsters(id)
+        );
+
         CREATE TABLE IF NOT EXISTS battle_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             date TEXT NOT NULL,

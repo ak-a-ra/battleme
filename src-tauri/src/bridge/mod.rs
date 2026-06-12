@@ -95,6 +95,7 @@ mod tests {
                 target_ko: false,
                 float_text: "42 [Burn!]".into(),
             }],
+            phase: "battle".into(),
         };
 
         let json = serde_json::to_string(&bs).expect("serialize");
