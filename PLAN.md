@@ -2,7 +2,7 @@
 
 > Build order completed. All v1 tasks implemented.
 >
-> **v2 deferred:** Wiki (11), History & Stats (12), Polish (13). See [docs/adr/](/docs/adr/) for architecture decisions.
+> **v2 deferred:** History & Stats (12), Polish (13). See [docs/adr/](/docs/adr/) for architecture decisions.
 >
 > **Critical architecture note:** The OBS overlay runs in a plain browser (no Tauri IPC). A Rust HTTP bridge (port 38021) serves battle state to the overlay via fetch polling. See Task 01-b.
 
@@ -87,8 +87,8 @@ AppState:
 | 08 — Overlay UI | ✅ | `07ced8e` | HP/MP bars, status icons, floating numbers, turn timer |
 | 09 — Draft | ✅ | `b821efb` | lineups, 3-poll chat draft, phase state, overlay phase display |
 | 10 — Dashboard | ✅ | `37de372` | battle controls, move selector, round settings, turn loop |
-| 11 — Wiki | ➡️ v2 | — | companion encyclopedia, type chart, status reference |
-| 12 — History & Stats | ➡️ v2 | — | battle logs, replay, analytics, charts |
+| 11 — Wiki | ✅ | `75e71eb` | companion encyclopedia, type chart, status reference |
+| 12 — History & Stats | ➡️ v2 | — | battle logs, replay, charts |
 
 ---
 

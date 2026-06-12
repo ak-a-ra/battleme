@@ -33,7 +33,7 @@ tmp/                   ← scratch/temp (gitignored)
 | 08 | `docs/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 | ✅ |
 | 09 | `docs/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 | ✅ |
 | 10 | `docs/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 | ✅ |
-| 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ➡️ v2 |
+| 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ✅ |
 | 12 | `docs/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 | ➡️ v2 |
 | 13 | `docs/design/task-13-polish.md` | Sound effects, auto-updater, Twitch disconnect recovery, Windows build | all | ➡️ v2 |
 
