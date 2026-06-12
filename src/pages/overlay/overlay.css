@@ -34,3 +34,22 @@
   50%  { transform: translateY(-3px); }
   100% { transform: translateY(0); }
 }
+
+/* ── Sprite attack lunge ── */
+@keyframes sprite-lunge {
+  0%   { transform: translateX(0); }
+  30%  { transform: translateX(40px); }
+  60%  { transform: translateX(40px); }
+  100% { transform: translateX(0); }
+}
+
+/* ── Sprite damaged flinch ── */
+@keyframes sprite-flinch {
+  0%   { transform: translateX(0); }
+  15%  { transform: translateX(-10px); }
+  30%  { transform: translateX(8px); }
+  45%  { transform: translateX(-6px); }
+  60%  { transform: translateX(4px); }
+  80%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}

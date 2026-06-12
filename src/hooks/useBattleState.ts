@@ -8,6 +8,8 @@ export interface OverlayBattleState {
   winner: string | null;
   turn_log: TurnLogEntry[];
   phase: string;
+  poll_duration_secs: number;
+  poll_started_at_ms: number;
 }
 
 interface OverlayMon {

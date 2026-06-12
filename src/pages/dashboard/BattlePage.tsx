@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useBattleControls } from '../../hooks/useBattleControls'
 import MoveSelector from './MoveSelector'
 import RoundSettings from './RoundSettings'
@@ -7,6 +8,7 @@ import { BRIDGE_OVERLAY_URL } from '../../lib/config'
 
 /// Battle control page — streamer picks moves, sees battle state, controls turn flow.
 export default function BattlePage() {
+  const navigate = useNavigate()
   const {
     phase, battle, activeStreamerIdx, activeChatIdx,
     streamerAbilities, streamerMove, setStreamerMove,
@@ -29,6 +31,8 @@ export default function BattlePage() {
     try {
       await api.saveBattleResult()
       setSaved(true)
+      // Auto-redirect to dashboard home after 2s
+      setTimeout(() => navigate('/'), 2000)
     } catch {}
   }
 
@@ -271,6 +275,7 @@ export default function BattlePage() {
             >
               {saved ? '✓ Saved' : 'Save Result'}
             </button>
+            {saved && <p className="text-xs text-zinc-500 mt-2">Redirecting to dashboard...</p>}
           </div>
         </div>
       )}

@@ -3,7 +3,6 @@ import { CSSProperties } from 'react'
 export type SpriteState = 'idle' | 'attack' | 'damaged' | 'ko'
 
 /// Color palette for the 12 default monsters.
-/// Real pixel art can replace later — no image files needed.
 const PALETTE: Record<string, string> = {
   emberwolf: '#ff4400',
   flamecrow: '#ff8800',
@@ -19,6 +18,14 @@ const PALETTE: Record<string, string> = {
   solarclaw: '#ffcc00',
 }
 
+/// Animation class for each sprite state.
+const ANIMATION_CLASS: Record<SpriteState, string | undefined> = {
+  idle: 'sprite-idle',
+  attack: 'sprite-lunge',
+  damaged: 'sprite-flinch',
+  ko: undefined,
+}
+
 interface SpriteProps {
   spriteId: string
   name: string
@@ -29,14 +36,16 @@ interface SpriteProps {
   style?: CSSProperties
 }
 
-/// Sprite component — renders as a colored rectangle with first letter.
+/// Sprite component — colored rectangle with first letter and animation.
 /// No image files required. Replaces with pixel art later.
 export default function Sprite({ spriteId, name, state, isKo, flipX, style }: SpriteProps) {
   const isIdle = state === 'idle'
   const color = PALETTE[spriteId] || '#888'
+  const animClass = isKo ? undefined : ANIMATION_CLASS[state]
 
   return (
     <div
+      className={animClass}
       style={{
         width: 72,
         height: 72,
@@ -57,6 +66,7 @@ export default function Sprite({ spriteId, name, state, isKo, flipX, style }: Sp
         transform: flipX ? 'scaleX(-1)' : 'none',
         imageRendering: 'pixelated',
         transition: 'filter 0.3s ease',
+        animation: animClass ? `${animClass} 0.6s ease-out` : undefined,
         ...style,
       }}
     >
