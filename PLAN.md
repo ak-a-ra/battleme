@@ -80,7 +80,7 @@ AppState:
 | 04 — Battle Engine | ✅ | `b31f1ed` | 4 modules, 19 unit tests, no DB dependency |
 | 05 — Twitch | ✅ | `20baae6` | Auth, polls, EventSub WS, test mode stub, useTwitchPoll hook |
 | 01-b — HTTP Bridge | ✅ | `530a375` | Shared state via Arc<RwLock<>>; fetch polling hook |
-| 06 — Admin UI | ⬜ | — | |
+| 06 — Admin UI | ✅ | `f183f29` | CRUD pages, LLM generate stats, ability manager, settings |
 | 07 — Overlay Layers | ⬜ | — | |
 | 08 — Overlay UI | ⬜ | — | |
 | 09 — Draft | ⬜ | — | |
@@ -221,7 +221,35 @@ Commit: `20baae6`
 
 ---
 
-## TASK 01-b — HTTP Bridge for OBS Overlay (insert before task 06/07)
+## TASK 06 — Admin UI + LLM Generate Stats ✅
+
+Commit: `f183f29`
+
+### Summary
+- **commands/llm.rs**: `generate_monster_stats(name, monster_type)` — Anthropic Claude API call, returns JSON with hp/mp/stats/lore/abilities/passives
+- **commands/abilities.rs**: Added `unassign_ability_from_monster` (DELETE from join table)
+- **AdminLayout.tsx**: Sidebar nav with 5 links (Monsters, Hunters, Abilities, Status, Settings) + `<Outlet />`
+- **AdminMonsters.tsx**: Table view, Add/Edit/Delete, expandable row for per-monster AbilityManager
+- **MonsterForm.tsx**: Modal form with all fields + "Generate Stats" button (fills stats/lore only — abilities discarded per grill decision)
+- **AbilityManager.tsx**: Per-monster ability CRUD — active section + passive section, inline add/edit/delete forms
+- **AdminHunters.tsx**: Table + modal form with 7 classes (no LLM generate)
+- **AdminStatus.tsx**: Table + modal form with icon, effect, duration, color swatch
+- **AdminSettings.tsx**: 4 env inputs (TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET, TWITCH_CHANNEL_NAME, ANTHROPIC_API_KEY) + Copy OBS URL button
+- **AdminAbilities.tsx**: Placeholder page redirecting to Monsters
+- **lib/invoke.ts**: Added TypeScript interfaces (Monster, Hunter, Ability, StatusEffect) + typed API methods
+- Registered `unassign_ability_from_monster` + `generate_monster_stats` in `lib.rs`
+
+### Verified
+- `cargo check` — clean (1 pre-existing dead_code warning for BattleLog)
+- `cargo test --lib` — 20/20 pass
+- `tsc --noEmit` — clean
+- `vite build` — clean (42 modules, 234KB)
+
+---
+
+## TASK 01-b — HTTP Bridge for OBS Overlay ✅
+
+Commit: `530a375`
 
 Dep: tiny_http = "0.12"
 

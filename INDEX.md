@@ -27,7 +27,7 @@ tmp/                   ← scratch/temp (gitignored)
 | 04 | `docs/design/task-04-battle-engine.md` | Rust battle engine — damage calc, type chart, status (+ tests) | 03 | ✅ |
 | 05 | `docs/design/task-05-twitch.md` | Twitch integration — auth, polls, EventSub, test mode stub | 03 | ✅ |
 | 01-b | `docs/design/task-01b-http-bridge.md` | HTTP bridge for OBS overlay — shared state, REST endpoints | 04 | ✅ |
-| 06 | `docs/design/task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 | ⬜ |
+| 06 | `docs/design/task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 | ✅ |
 | 07 | `docs/design/task-07-overlay-layers.md` | OBS overlay 4-layer system, sprite animations, parallax | 01-b | ⬜ |
 | 08 | `docs/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 | ⬜ |
 | 09 | `docs/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 | ⬜ |
