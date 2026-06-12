@@ -75,6 +75,8 @@ pub fn run() {
             commands::battle::resolve_turn,
             commands::twitch::start_poll,
             commands::twitch::get_broadcaster_id,
+            commands::abilities::unassign_ability_from_monster,
+            commands::llm::generate_monster_stats,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

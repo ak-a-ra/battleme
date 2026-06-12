@@ -110,3 +110,18 @@ pub async fn assign_ability_to_monster(
 
     Ok(())
 }
+
+#[tauri::command]
+pub async fn unassign_ability_from_monster(
+    state: tauri::State<'_, AppState>,
+    monster_id: i64,
+    ability_id: i64,
+) -> Result<(), String> {
+    let db = state.db.lock().await;
+    db.execute(
+        "DELETE FROM monster_abilities WHERE monster_id=?1 AND ability_id=?2",
+        rusqlite::params![monster_id, ability_id],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}

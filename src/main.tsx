@@ -2,6 +2,12 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminMonsters from "./pages/admin/AdminMonsters";
+import AdminHunters from "./pages/admin/AdminHunters";
+import AdminAbilities from "./pages/admin/AdminAbilities";
+import AdminStatus from "./pages/admin/AdminStatus";
+import AdminSettings from "./pages/admin/AdminSettings";
 import "./styles.css";
 
 const router = createBrowserRouter([
@@ -25,13 +31,14 @@ const router = createBrowserRouter([
       },
       {
         path: "admin",
+        element: <AdminLayout />,
         children: [
-          { index: true, element: <div>Admin Home</div> },
-          { path: "monsters", element: <div>Admin Monsters</div> },
-          { path: "hunters", element: <div>Admin Hunters</div> },
-          { path: "abilities", element: <div>Admin Abilities</div> },
-          { path: "status", element: <div>Admin Status Effects</div> },
-          { path: "settings", element: <div>Admin Settings</div> },
+          { index: true, element: <AdminMonsters /> },
+          { path: "monsters", element: <AdminMonsters /> },
+          { path: "hunters", element: <AdminHunters /> },
+          { path: "abilities", element: <AdminAbilities /> },
+          { path: "status", element: <AdminStatus /> },
+          { path: "settings", element: <AdminSettings /> },
         ],
       },
       { path: "history", element: <div>History</div> },
