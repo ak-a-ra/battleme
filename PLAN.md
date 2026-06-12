@@ -2,7 +2,7 @@
 
 > Build order completed. All v1 tasks implemented.
 >
-> **v2 deferred:** History & Stats (12), Polish (13). See [docs/adr/](/docs/adr/) for architecture decisions.
+> **v2 deferred:** Polish (13). See [docs/adr/](/docs/adr/) for architecture decisions.
 >
 > **Critical architecture note:** The OBS overlay runs in a plain browser (no Tauri IPC). A Rust HTTP bridge (port 38021) serves battle state to the overlay via fetch polling. See Task 01-b.
 
@@ -88,7 +88,7 @@ AppState:
 | 09 — Draft | ✅ | `b821efb` | lineups, 3-poll chat draft, phase state, overlay phase display |
 | 10 — Dashboard | ✅ | `37de372` | battle controls, move selector, round settings, turn loop |
 | 11 — Wiki | ✅ | `75e71eb` | companion encyclopedia, type chart, status reference |
-| 12 — History & Stats | ➡️ v2 | — | battle logs, replay, charts |
+| 12 — History & Stats | ✅ | `1ccc202` | battle logs, turn replay, pie/bar charts |
 
 ---
 
@@ -520,7 +520,9 @@ Commit: "feat: wiki — companion encyclopedia, status reference, type chart"
 
 ---
 
-## TASK 12 — History & Stats
+## TASK 12 — History & Stats ✅
+
+Commit: `1ccc202`
 
 commands/battle.rs:
   get_battle_logs(state) -> Vec<BattleLog> SELECT * ORDER BY date DESC LIMIT 50
