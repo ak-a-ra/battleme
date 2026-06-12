@@ -1,6 +1,7 @@
 # BattleMe — Implementation Plan Index
 
-> Feed each task file to Claude Code one at a time. Task files live in `docs/design/`. Complete in order — each task builds on the previous.
+> **v1 complete.** All core features implemented. See `PLAN.md` for detail.
+> Deferred to v2: Wiki, History & Stats, Polish.
 
 ---
 
@@ -29,23 +30,24 @@ tmp/                   ← scratch/temp (gitignored)
 | 01-b | `docs/design/task-01b-http-bridge.md` | HTTP bridge for OBS overlay — shared state, REST endpoints | 04 | ✅ |
 | 06 | `docs/design/task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 | ✅ |
 | 07 | `docs/design/task-07-overlay-layers.md` | OBS overlay 4-layer system, sprite animations, parallax | 01-b | ✅ |
-| 08 | `docs/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 | ⬜ |
-| 09 | `docs/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 | ⬜ |
-| 10 | `docs/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 | ⬜ |
-| 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ⬜ |
-| 12 | `docs/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 | ⬜ |
-| 13 | `docs/design/task-13-polish.md` | Sound effects, auto-updater, Twitch disconnect recovery, Windows build | all | ⬜ |
+| 08 | `docs/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 | ✅ |
+| 09 | `docs/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 | ✅ |
+| 10 | `docs/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 | ✅ |
+| 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ➡️ v2 |
+| 12 | `docs/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 | ➡️ v2 |
+| 13 | `docs/design/task-13-polish.md` | Sound effects, auto-updater, Twitch disconnect recovery, Windows build | all | ➡️ v2 |
 
 ---
 
-## How to use with Claude Code
+## How to use
 
 ```
-1. Open Claude Code in the battleme/ project directory
-2. Feed task-01-scaffold.md → complete all steps → commit
-3. Feed task-02-database.md → complete → commit
-4. Continue in order through task-13
-5. Each task is self-contained — if a step fails, fix before moving on
+v1 is complete. Core flow:
+1. Admin → Add monsters/hunters/abilities, Generate Stats via LLM
+2. Dashboard → Lineup (pick hunter + 3 monsters)
+3. Dashboard → Draft (chat picks 3 monsters via Twitch polls)
+4. Dashboard → Battle (pick moves, start turns, chat votes, resolve)
+5. Overlay → OBS browser source shows the battle in real-time
 ```
 
 ---

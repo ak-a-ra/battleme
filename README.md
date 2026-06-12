@@ -23,7 +23,11 @@ npm run tauri dev      # opens app on localhost:3000
 
 ## Roadmap
 
-See `PLAN.md` for the full build order.
+**v1 ✅ Complete.** Core battle loop, Twitch integration, OBS overlay, admin CRUD, draft system, dashboard controls.
+
+Deferred to v2: Wiki encyclopedia, battle history replay, analytics stats, polish.
+
+See `PLAN.md` for full detail.
 
 ## License
 

@@ -1,6 +1,8 @@
 # BattleMe — Master Implementation Plan
 
-> Build order: task-01 → task-02 → task-03 → task-04 → task-05 → task-01b → task-06 → task-07 → task-08 → task-09 → task-10 → task-11 → task-12 → task-13. Each task feeds the next. Commit after each completes.
+> Build order completed. All v1 tasks implemented.
+>
+> **v2 deferred:** Wiki (11), History & Stats (12), Polish (13). See [docs/adr/](/docs/adr/) for architecture decisions.
 >
 > **Critical architecture note:** The OBS overlay runs in a plain browser (no Tauri IPC). A Rust HTTP bridge (port 38021) serves battle state to the overlay via fetch polling. See Task 01-b.
 
@@ -82,11 +84,11 @@ AppState:
 | 01-b — HTTP Bridge | ✅ | `6800936` | Static file serving + `/health` endpoint + shared config module |
 | 06 — Admin UI | ✅ | `f183f29` | CRUD pages, LLM generate stats, ability manager, settings |
 | 07 — Overlay Layers | ✅ | `857f6ba` | 4-layer system, CSS sprites, parallax, running scene, no Rust changes |
-| 08 — Overlay UI | ⬜ | — | |
-| 09 — Draft | ⬜ | — | |
-| 10 — Dashboard | ⬜ | — | |
-| 11 — Wiki | ⬜ | — | |
-| 12 — History & Stats | ⬜ | — | |
+| 08 — Overlay UI | ✅ | `07ced8e` | HP/MP bars, status icons, floating numbers, turn timer |
+| 09 — Draft | ✅ | `b821efb` | lineups, 3-poll chat draft, phase state, overlay phase display |
+| 10 — Dashboard | ✅ | `37de372` | battle controls, move selector, round settings, turn loop |
+| 11 — Wiki | ➡️ v2 | — | companion encyclopedia, type chart, status reference |
+| 12 — History & Stats | ➡️ v2 | — | battle logs, replay, analytics, charts |
 
 ---
 
