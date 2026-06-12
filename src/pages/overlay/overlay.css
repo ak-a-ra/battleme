@@ -1,0 +1,30 @@
+/* ── Environment parallax ── */
+@keyframes scroll-left {
+  from { background-position-x: 0; }
+  to   { background-position-x: -1920px; }
+}
+
+.trees-scroll {
+  animation: scroll-left 20s linear infinite;
+}
+
+.trees-scroll-fast {
+  animation: scroll-left 4s linear infinite;
+}
+
+/* ── Victory walk ── */
+@keyframes victory-walk {
+  from { left: -100px; }
+  to   { left: 2000px; }
+}
+
+.victory-walk {
+  animation: victory-walk 3s ease-in-out forwards;
+}
+
+/* ── Sprite idle breathing ── */
+@keyframes sprite-idle {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-3px); }
+  100% { transform: translateY(0); }
+}

@@ -8,6 +8,7 @@ import AdminHunters from "./pages/admin/AdminHunters";
 import AdminAbilities from "./pages/admin/AdminAbilities";
 import AdminStatus from "./pages/admin/AdminStatus";
 import AdminSettings from "./pages/admin/AdminSettings";
+import Overlay from "./pages/overlay/Overlay";
 import "./styles.css";
 
 const router = createBrowserRouter([
@@ -15,7 +16,7 @@ const router = createBrowserRouter([
     path: "/",
     element: <App />,
     children: [
-      { path: "overlay", element: <div>Overlay</div> },
+      { path: "overlay", element: <Overlay /> },
       { path: "dashboard", element: <div>Dashboard</div> },
       {
         path: "wiki",
