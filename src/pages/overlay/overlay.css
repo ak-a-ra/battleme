@@ -53,3 +53,13 @@
   80%  { transform: translateX(-2px); }
   100% { transform: translateX(0); }
 }
+
+/* ── Twitch disconnect warning ── */
+@keyframes pulse-warning {
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 0.4; }
+}
+
+.pulse-warning {
+  animation: pulse-warning 1.5s ease-in-out infinite;
+}

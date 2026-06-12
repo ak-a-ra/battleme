@@ -10,6 +10,7 @@ export interface OverlayBattleState {
   phase: string;
   poll_duration_secs: number;
   poll_started_at_ms: number;
+  twitch_connected: boolean;
 }
 
 interface OverlayMon {

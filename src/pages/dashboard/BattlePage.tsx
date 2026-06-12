@@ -17,27 +17,35 @@ export default function BattlePage() {
   } = useBattleControls()
 
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const OBS_URL = import.meta.env.PROD ? BRIDGE_OVERLAY_URL : 'http://localhost:3000/overlay'
 
   const handleSelectMove = (abilityId: number) => {
     if (abilityId === 0) {
       setStreamerMove({ name: 'Basic Attack', base_power: 10, ability_type: 'physical', status_inflict_name: null, status_duration: 0 })
     } else {
-      api.getAbilityInput(abilityId).then(setStreamerMove).catch(() => {})
+      api.getAbilityInput(abilityId).then(setStreamerMove).catch((e) => console.error('Failed to load ability', e))
     }
   }
 
   const handleSaveResult = async () => {
     try {
+      setSaveError(null)
       await api.saveBattleResult()
       setSaved(true)
       // Auto-redirect to dashboard home after 2s
       setTimeout(() => navigate('/'), 2000)
-    } catch {}
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : 'Failed to save battle result')
+      console.error('saveBattleResult failed', e)
+    }
   }
 
   const handleCopyOBS = () => {
     navigator.clipboard.writeText(OBS_URL)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   if (phase === 'loading') {
@@ -72,6 +80,7 @@ export default function BattlePage() {
     <div className="max-w-6xl mx-auto">
       {/* Error banner */}
       {error && <div className="bg-red-900/50 text-red-300 p-3 rounded mb-4 text-sm">{error}</div>}
+      {saveError && <div className="bg-red-900/50 text-red-300 p-3 rounded mb-4 text-sm">Save failed: {saveError}</div>}
 
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
@@ -95,7 +104,7 @@ export default function BattlePage() {
           onClick={handleCopyOBS}
           className="text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-3 py-1.5 rounded"
         >
-          📋 Copy OBS URL
+          {copied ? '✓ Copied!' : '📋 Copy OBS URL'}
         </button>
       </div>
 
