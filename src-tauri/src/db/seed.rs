@@ -11,6 +11,7 @@ pub fn run_if_empty(conn: &Connection) {
     seed_status_effects(conn);
     seed_monsters(conn);
     seed_default_hunter(conn);
+    seed_abilities(conn);
 }
 
 fn seed_status_effects(conn: &Connection) {
@@ -70,6 +71,30 @@ fn seed_default_hunter(conn: &Connection) {
     .unwrap();
 }
 
+fn seed_abilities(conn: &Connection) {
+    // Create 2 combat abilities
+    conn.execute(
+        "INSERT OR IGNORE INTO abilities (id, name, mp_cost, power, ability_type, effect, status_inflict_id, is_passive) VALUES (1, 'Power Strike', 10, 25, 'physical', 'A powerful physical attack', NULL, 0)",
+        [],
+    ).unwrap();
+    conn.execute(
+        "INSERT OR IGNORE INTO abilities (id, name, mp_cost, power, ability_type, effect, status_inflict_id, is_passive) VALUES (2, 'Elemental Blast', 15, 30, 'magic', 'An elemental magic attack', NULL, 0)",
+        [],
+    ).unwrap();
+
+    // Assign both abilities to all 12 monsters
+    for monster_id in 1..=12 {
+        conn.execute(
+            "INSERT OR IGNORE INTO monster_abilities (monster_id, ability_id) VALUES (?1, 1)",
+            [monster_id],
+        ).unwrap();
+        conn.execute(
+            "INSERT OR IGNORE INTO monster_abilities (monster_id, ability_id) VALUES (?1, 2)",
+            [monster_id],
+        ).unwrap();
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -94,6 +119,16 @@ mod tests {
             .query_row("SELECT COUNT(*) FROM hunters", [], |r| r.get(0))
             .unwrap();
         assert_eq!(hunter_count, 1, "should seed 1 hunter");
+
+        let ability_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM abilities", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(ability_count, 2, "should seed 2 abilities");
+
+        let assignments: i64 = conn
+            .query_row("SELECT COUNT(*) FROM monster_abilities", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(assignments, 24, "should assign 2 abilities to 12 monsters");
     }
 
     #[test]
@@ -134,6 +169,14 @@ mod tests {
             .query_row("SELECT COUNT(*) FROM hunters", [], |r| r.get(0))
             .unwrap();
         assert_eq!(hunter_count, 1);
+        let ability_count: i64 = conn2
+            .query_row("SELECT COUNT(*) FROM abilities", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(ability_count, 2);
+        let assignments: i64 = conn2
+            .query_row("SELECT COUNT(*) FROM monster_abilities", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(assignments, 24);
         drop(conn2);
 
         // Cleanup

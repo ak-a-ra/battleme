@@ -142,6 +142,8 @@ listen('draft-complete', (e) => setChatTeam(e.payload.chat_team))
 
 ---
 
+### Status: ✅ Implemented
+
 ### Step 9: Commit
 ```bash
 git add .

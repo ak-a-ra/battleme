@@ -3,6 +3,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 const links = [
   { to: '/dashboard/lineup', label: 'Lineup' },
   { to: '/dashboard/draft',  label: 'Draft' },
+  { to: '/dashboard/battle', label: 'Battle' },
 ]
 
 export default function DashboardLayout() {

@@ -66,6 +66,14 @@ export interface BattleState {
   phase: string
 }
 
+export interface AbilityInput {
+  name: string
+  base_power: number
+  ability_type: string
+  status_inflict_name: string | null
+  status_duration: number
+}
+
 /** Typed wrapper around Tauri invoke commands. */
 export const api = {
   // Monsters
@@ -107,8 +115,20 @@ export const api = {
     invoke<Record<string, any>>('generate_monster_stats', { name, monsterType }),
 
   // Battle
-  resolveTurn: (streamerMove: any, chatMove: any) =>
+  resolveTurn: (streamerMove: AbilityInput, chatMove: AbilityInput) =>
     invoke<any>('resolve_turn', { streamerMove, chatMove }),
+
+  getBattleState: () =>
+    invoke<BattleState>('get_battle_state'),
+
+  getAbilityInput: (abilityId: number) =>
+    invoke<AbilityInput>('get_ability_input', { abilityId }),
+
+  surrender: (winnerSide: string) =>
+    invoke<BattleState>('surrender', { winnerSide }),
+
+  saveBattleResult: () =>
+    invoke<void>('save_battle_result'),
 
   // Draft
   startPoll: (title: string, choices: string[], durationSecs: number) =>

@@ -11,6 +11,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
 import LineupBuilder from "./pages/dashboard/LineupBuilder";
 import DraftPhase from "./pages/dashboard/DraftPhase";
+import BattlePage from "./pages/dashboard/BattlePage";
 import Overlay from "./pages/overlay/Overlay";
 import "./styles.css";
 
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
           { index: true, element: <div className="text-zinc-500 p-8">Select Lineup or Draft from the sidebar.</div> },
           { path: "lineup", element: <LineupBuilder /> },
           { path: "draft", element: <DraftPhase /> },
+          { path: "battle", element: <BattlePage /> },
         ],
       },
       {
