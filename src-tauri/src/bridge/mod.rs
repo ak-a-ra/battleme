@@ -1,5 +1,6 @@
 use crate::battle::types::BattleState;
 use std::io::Cursor;
+use serde_json;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use std::thread;
@@ -42,6 +43,14 @@ pub fn start(state: Arc<RwLock<BattleState>>) {
                     let s = state.read().unwrap();
                     let body =
                         serde_json::to_string(&*s).unwrap_or_else(|_| "{}".to_string());
+                    json_ok(body)
+                }
+                (&tiny_http::Method::Get, "/api/status") => {
+                    let s = state.read().unwrap();
+                    let body = serde_json::json!({
+                        "twitch_connected": s.twitch_connected,
+                    })
+                    .to_string();
                     json_ok(body)
                 }
                 (&tiny_http::Method::Get, "/health") => text_ok("ok"),
@@ -230,6 +239,7 @@ mod tests {
             poll_duration_secs: 0,
             poll_started_at_ms: 0,
             started_at_ms: 0,
+            twitch_connected: false,
         };
 
         let json = serde_json::to_string(&bs).expect("serialize");

@@ -82,48 +82,23 @@ pub async fn get_ability_input(
     })
 }
 
-/// Surrender — set the winner, write to battle_logs, mark phase complete.
+/// Surrender — set the winner, mark phase complete. Does NOT write to battle_logs;
+/// the streamer must click "Save Result" for that.
 #[tauri::command]
 pub async fn surrender(
     state: tauri::State<'_, AppState>,
     winner_side: String,
 ) -> Result<BattleState, String> {
-    // Clone the data we need while holding the lock, then drop it before .await
-    let (result, streamer_ids, chat_ids, turn_log, winner, duration_secs) = {
+    let result = {
         let mut battle = state
             .battle_state
             .write()
             .map_err(|e| format!("Lock error: {}", e))?;
 
-        battle.winner = Some(winner_side.clone());
+        battle.winner = Some(winner_side);
         battle.phase = "complete".into();
-
-        let streamer_ids: Vec<i64> = battle.streamer_team.iter().map(|m| m.id).collect();
-        let chat_ids: Vec<i64> = battle.chat_team.iter().map(|m| m.id).collect();
-        let turn_log = battle.turn_log.clone();
-        let started = battle.started_at_ms;
-        let duration_secs = if started > 0 {
-            ((crate::util::now_ms() - started) / 1000) as i64
-        } else {
-            0
-        };
-        let result = battle.clone();
-        (result, streamer_ids, chat_ids, turn_log, winner_side, duration_secs)
-    }; // RwLock guard dropped here
-
-    // Log to battle_logs (no RwLock guard held)
-    let db = state.db.lock().await;
-    let _ = db.execute(
-        "INSERT INTO battle_logs (date, winner_side, streamer_team, chat_team, turns, duration_secs)
-         VALUES (datetime('now'), ?1, ?2, ?3, ?4, ?5)",
-        rusqlite::params![
-            winner,
-            serde_json::to_string(&streamer_ids).unwrap_or_default(),
-            serde_json::to_string(&chat_ids).unwrap_or_default(),
-            serde_json::to_string(&turn_log).unwrap_or_default(),
-            duration_secs,
-        ],
-    );
+        battle.clone()
+    };
 
     Ok(result)
 }

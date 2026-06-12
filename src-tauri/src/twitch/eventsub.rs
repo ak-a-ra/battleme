@@ -1,57 +1,84 @@
+use crate::battle::types::BattleState;
 use futures_util::StreamExt;
 use reqwest::Client;
 use serde_json::json;
+use std::sync::{Arc, RwLock};
+use std::time::Duration;
 use tokio_tungstenite::connect_async;
 
-/// Listen for Twitch EventSub events via WebSocket.
+/// Listen for Twitch EventSub events via WebSocket with auto-reconnect.
 ///
-/// Flow:
-/// 1. Connect to wss://eventsub.wss.twitch.tv/ws
-/// 2. Receive `session_welcome` → extract `session_id`
-/// 3. POST /helix/eventsub/subscriptions with `channel.poll.end`
-/// 4. On `poll.end` notification → emit `poll-result` via Tauri emitter
+/// Runs in a `loop { ... }` with exponential backoff (1s → 30s cap).
+/// On successful `session_welcome`, sets `twitch_connected = true` on
+/// the shared battle state. On disconnect/error, sets it to `false`.
 pub async fn listen(
     app_handle: tauri::AppHandle,
+    battle_state: Arc<RwLock<BattleState>>,
     token: String,
     client_id: String,
     broadcaster_id: String,
 ) {
-    let ws_url = "wss://eventsub.wss.twitch.tv/ws";
-    let (ws_stream, _) = match connect_async(ws_url).await {
-        Ok(s) => s,
-        Err(e) => {
-            eprintln!("[twitch] EventSub WebSocket connect failed: {e}");
-            return;
+    let mut delay = 1u64;
+    loop {
+        eprintln!("[twitch] EventSub connecting...");
+        let result = listen_once(
+            &app_handle,
+            &battle_state,
+            &token,
+            &client_id,
+            &broadcaster_id,
+        )
+        .await;
+
+        match &result {
+            Ok(()) => eprintln!("[twitch] EventSub listener exited cleanly"),
+            Err(e) => eprintln!("[twitch] EventSub error: {e}"),
         }
-    };
 
-    let (write, mut read) = ws_stream.split();
+        // Mark disconnected
+        {
+            let mut bs = battle_state.write().unwrap();
+            bs.twitch_connected = false;
+        }
 
-    // Buffer for incoming messages, accumulate JSON chunks
+        eprintln!("[twitch] reconnecting in {delay}s...");
+        tokio::time::sleep(Duration::from_secs(delay)).await;
+        delay = (delay * 2).min(30);
+    }
+}
+
+/// Single EventSub WebSocket session — connects, subscribes, processes messages.
+/// Returns Ok when the session ends cleanly, Err on failure.
+async fn listen_once(
+    app_handle: &tauri::AppHandle,
+    battle_state: &Arc<RwLock<BattleState>>,
+    token: &str,
+    client_id: &str,
+    broadcaster_id: &str,
+) -> Result<(), String> {
+    let ws_url = "wss://eventsub.wss.twitch.tv/ws";
+    let (ws_stream, _) = connect_async(ws_url)
+        .await
+        .map_err(|e| format!("WebSocket connect failed: {e}"))?;
+
+    let (_write, mut read) = ws_stream.split();
+
     let mut buf = String::new();
 
     while let Some(msg) = read.next().await {
-        let msg = match msg {
-            Ok(m) => m,
-            Err(e) => {
-                eprintln!("[twitch] WebSocket recv error: {e}");
-                break;
-            }
-        };
+        let msg = msg.map_err(|e| format!("WebSocket recv error: {e}"))?;
 
-        // Twitch EventSub sends JSON text frames
         if !msg.is_text() {
             continue;
         }
         buf.push_str(msg.to_text().unwrap_or(""));
 
-        // Try to parse a complete JSON message
         let parsed: serde_json::Value = match serde_json::from_str(&buf) {
             Ok(v) => {
                 buf.clear();
                 v
             }
-            Err(_) => continue, // incomplete frame, wait for more
+            Err(_) => continue,
         };
 
         let metadata = &parsed["metadata"];
@@ -59,6 +86,12 @@ pub async fn listen(
 
         match msg_type {
             "session_welcome" => {
+                // Mark connected
+                {
+                    let mut bs = battle_state.write().unwrap();
+                    bs.twitch_connected = true;
+                }
+
                 let session_id = parsed["payload"]["session"]["id"]
                     .as_str()
                     .unwrap_or("")
@@ -69,14 +102,8 @@ pub async fn listen(
                 }
                 eprintln!("[twitch] session_welcome: {session_id}");
 
-                // Subscribe to channel.poll.end
-                if let Err(e) = subscribe_poll_end(
-                    &client_id,
-                    &token,
-                    &broadcaster_id,
-                    &session_id,
-                )
-                .await
+                if let Err(e) =
+                    subscribe_poll_end(client_id, token, broadcaster_id, &session_id).await
                 {
                     eprintln!("[twitch] subscribe failed: {e}");
                 }
@@ -89,7 +116,6 @@ pub async fn listen(
 
                 if sub_type == "channel.poll.end" {
                     let event = &parsed["payload"]["event"];
-                    // Extract the winning choice title
                     let choices = &event["choices"];
                     let winning_index = event["status"].as_str().unwrap_or("");
                     let winning_title = if winning_index == "completed" {
@@ -98,7 +124,8 @@ pub async fn listen(
                             .and_then(|arr| {
                                 arr.iter().find(|c| {
                                     c["votes"].as_i64().unwrap_or(0)
-                                        > arr.iter()
+                                        > arr
+                                            .iter()
                                             .filter_map(|c2| c2["votes"].as_i64())
                                             .max()
                                             .unwrap_or(0)
@@ -108,7 +135,6 @@ pub async fn listen(
                             .and_then(|c| c["title"].as_str())
                             .unwrap_or("Basic Attack")
                     } else {
-                        // Poll was terminated or archived — default
                         "Basic Attack"
                     };
                     eprintln!("[twitch] poll.end winner: {winning_title}");
@@ -122,24 +148,20 @@ pub async fn listen(
             "session_reconnect" => {
                 let reconnect_url = parsed["payload"]["session"]["reconnect_url"]
                     .as_str()
-                    .unwrap_or("");
+                    .unwrap_or("")
+                    .to_string();
                 eprintln!("[twitch] session_reconnect: {reconnect_url}");
-                // In v1, just log. Full reconnect would close current WS
-                // and connect to the new URL.
-                break;
+                // Return so the outer loop reconnects
+                return Err("reconnect requested".into());
             }
-            "session_keepalive" => {
-                // Twitch sends periodic keepalive — no action needed
-            }
+            "session_keepalive" => {}
             _ => {
                 eprintln!("[twitch] unknown message_type: {msg_type}");
             }
         }
     }
 
-    // Drop write — WebSocket will close
-    drop(write);
-    eprintln!("[twitch] EventSub listener disconnected");
+    Ok(())
 }
 
 /// Subscribe to `channel.poll.end` EventSub via Helix API.

@@ -220,6 +220,7 @@ pub async fn start_battle(
         poll_duration_secs: 0,
         poll_started_at_ms: 0,
         started_at_ms: crate::util::now_ms(),
+        twitch_connected: false,
     };
 
     let mut shared = state

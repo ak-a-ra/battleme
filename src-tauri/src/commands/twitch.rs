@@ -71,10 +71,11 @@ pub async fn start_poll(
     .await?;
     eprintln!("[twitch] poll created: {poll_id}");
 
-    // 4. Spawn EventSub listener in background
+    // 4. Spawn EventSub listener in background with battle state for reconnection
     let app_handle = app.clone();
+    let bs = state.battle_state.clone();
     tokio::spawn(async move {
-        eventsub::listen(app_handle, token, client_id, broadcaster_id).await;
+        eventsub::listen(app_handle, bs, token, client_id, broadcaster_id).await;
     });
 
     Ok(poll_id)

@@ -77,6 +77,8 @@ pub struct BattleState {
     pub poll_started_at_ms: i64,           // unix ms timestamp, 0 = no active poll
     #[serde(default)]
     pub started_at_ms: i64,                // unix ms when battle started, 0 = not started
+    #[serde(default)]
+    pub twitch_connected: bool,            // true when EventSub WS is alive
 }
 
 // ---------------------------------------------------------------------------
@@ -134,5 +136,6 @@ mod tests {
         assert_eq!(bs.poll_duration_secs, 0);
         assert_eq!(bs.poll_started_at_ms, 0);
         assert_eq!(bs.started_at_ms, 0);
+        assert!(!bs.twitch_connected);
     }
 }
