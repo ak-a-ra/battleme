@@ -71,6 +71,10 @@ pub struct BattleState {
     pub turn_log: Vec<TurnResult>,
     #[serde(default)]
     pub phase: String,                     // "idle" | "draft" | "battle" | "complete"
+    #[serde(default)]
+    pub poll_duration_secs: i64,           // 0 = no active poll
+    #[serde(default)]
+    pub poll_started_at_ms: i64,           // unix ms timestamp, 0 = no active poll
 }
 
 // ---------------------------------------------------------------------------
@@ -125,5 +129,7 @@ mod tests {
         assert_eq!(bs.turn_number, 0);
         assert!(bs.winner.is_none());
         assert!(bs.turn_log.is_empty());
+        assert_eq!(bs.poll_duration_secs, 0);
+        assert_eq!(bs.poll_started_at_ms, 0);
     }
 }

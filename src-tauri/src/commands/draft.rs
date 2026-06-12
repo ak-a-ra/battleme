@@ -217,6 +217,8 @@ pub async fn start_battle(
         winner: None,
         turn_log: vec![],
         phase: "battle".into(),
+        poll_duration_secs: 0,
+        poll_started_at_ms: 0,
     };
 
     let mut shared = state

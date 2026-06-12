@@ -5,19 +5,29 @@ use tauri::State;
 
 /// Start a Twitch poll for the given title and choices.
 ///
+/// Writes `poll_duration_secs` and `poll_started_at_ms` to the shared
+/// `BattleState` so the OBS overlay can show a countdown timer.
+///
 /// If `TWITCH_CLIENT_ID` is empty/absent, runs in **test mode**:
 /// sleeps for `duration_secs` then emits a fake `poll-result` with
-/// the first choice ("Basic Attack").
+/// a random choice.
 ///
 /// Async safety: DB lock is released before any `.await` call.
 #[tauri::command]
 pub async fn start_poll(
-    _state: State<'_, AppState>,
+    state: State<'_, AppState>,
     app: tauri::AppHandle,
     title: String,
     choices: Vec<String>,
     duration_secs: u32,
 ) -> Result<String, String> {
+    // Mark poll timing on shared battle state (before any await)
+    {
+        let mut bs = state.battle_state.write().unwrap();
+        bs.poll_duration_secs = duration_secs as i64;
+        bs.poll_started_at_ms = chrono_now_ms();
+    }
+
     // Reload .env to pick up any runtime changes
     dotenvy::dotenv().ok();
 
@@ -105,4 +115,12 @@ async fn resolve_broadcaster_id(
         .as_str()
         .unwrap_or("")
         .to_string())
+}
+
+/// Current unix epoch milliseconds.
+fn chrono_now_ms() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64
 }
