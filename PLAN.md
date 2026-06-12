@@ -79,7 +79,7 @@ AppState:
 | 03 — Commands | ✅ | `40b3461` | 19 commands; AppState with tokio::sync::Mutex; Tauri v2 Result requirement; app_data_dir |
 | 04 — Battle Engine | ✅ | `b31f1ed` | 4 modules, 19 unit tests, no DB dependency |
 | 05 — Twitch | ✅ | `20baae6` | Auth, polls, EventSub WS, test mode stub, useTwitchPoll hook |
-| 01-b — HTTP Bridge | ✅ | `530a375` | Shared state via Arc<RwLock<>>; fetch polling hook |
+| 01-b — HTTP Bridge | ✅ | `6800936` | Static file serving + `/health` endpoint + shared config module |
 | 06 — Admin UI | ✅ | `f183f29` | CRUD pages, LLM generate stats, ability manager, settings |
 | 07 — Overlay Layers | ✅ | `857f6ba` | 4-layer system, CSS sprites, parallax, running scene, no Rust changes |
 | 08 — Overlay UI | ⬜ | — | |
@@ -249,7 +249,9 @@ Commit: `f183f29`
 
 ## TASK 01-b — HTTP Bridge for OBS Overlay ✅
 
-Commit: `530a375`
+Commit: `530a375` → enhanced `6800936`
+
+**Enhancement:** Added static file serving from `dist/` (Q1 A), `/health` endpoint, and shared `src/lib/config.ts` for bridge URL/port constants (Q5). Bridge now serves the overlay SPA in production at `http://localhost:38021/overlay`.
 
 Dep: tiny_http = "0.12"
 

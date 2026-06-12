@@ -8,6 +8,3 @@ export const Z = {
 
 /// Y position of the ground line (px from top)
 export const BATTLE_FLOOR_Y = 720
-
-export const BRIDGE_URL = 'http://localhost:38021'
-export const POLL_INTERVAL = 1000

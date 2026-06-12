@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-
-const BRIDGE_URL = 'http://localhost:38021';
+import { BRIDGE_URL, POLL_INTERVAL } from '../lib/config'
 
 export interface OverlayBattleState {
   streamer_team: OverlayMon[];
@@ -60,7 +59,7 @@ export function useBattleState(): OverlayBattleState | null {
     };
 
     poll();
-    const id = setInterval(poll, 1000);
+    const id = setInterval(poll, POLL_INTERVAL);
     return () => clearInterval(id);
   }, []);
 

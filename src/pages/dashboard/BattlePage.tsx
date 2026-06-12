@@ -3,6 +3,7 @@ import { useBattleControls } from '../../hooks/useBattleControls'
 import MoveSelector from './MoveSelector'
 import RoundSettings from './RoundSettings'
 import { api } from '../../lib/invoke'
+import { BRIDGE_OVERLAY_URL } from '../../lib/config'
 
 /// Battle control page — streamer picks moves, sees battle state, controls turn flow.
 export default function BattlePage() {
@@ -14,9 +15,7 @@ export default function BattlePage() {
   } = useBattleControls()
 
   const [saved, setSaved] = useState(false)
-  const OBS_URL = import.meta.env.PROD
-    ? 'http://localhost:38021/overlay'
-    : 'http://localhost:3000/overlay'
+  const OBS_URL = import.meta.env.PROD ? BRIDGE_OVERLAY_URL : 'http://localhost:3000/overlay'
 
   const handleSelectMove = (abilityId: number) => {
     if (abilityId === 0) {
