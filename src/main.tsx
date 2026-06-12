@@ -19,6 +19,9 @@ import WikiHunters from "./pages/wiki/WikiHunters";
 import WikiHunterDetail from "./pages/wiki/WikiHunterDetail";
 import WikiStatusEffects from "./pages/wiki/WikiStatusEffects";
 import WikiTypeChart from "./pages/wiki/WikiTypeChart";
+import History from "./pages/history/History";
+import HistoryDetail from "./pages/history/HistoryDetail";
+import Stats from "./pages/stats/Stats";
 import Overlay from "./pages/overlay/Overlay";
 import "./styles.css";
 
@@ -63,9 +66,9 @@ const router = createBrowserRouter([
           { path: "settings", element: <AdminSettings /> },
         ],
       },
-      { path: "history", element: <div>History</div> },
-      { path: "history/:id", element: <div>History Detail</div> },
-      { path: "stats", element: <div>Stats</div> },
+      { path: "history", element: <History /> },
+      { path: "history/:id", element: <HistoryDetail /> },
+      { path: "stats", element: <Stats /> },
     ],
   },
 ]);
