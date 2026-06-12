@@ -9,3 +9,4 @@ pub mod monsters;
 pub mod settings;
 pub mod status_effects;
 pub mod twitch;
+pub mod wiki;

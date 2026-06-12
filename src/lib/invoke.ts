@@ -74,6 +74,12 @@ export interface AbilityInput {
   status_duration: number
 }
 
+export interface TypeChartEntry {
+  attacker: string
+  defender: string
+  multiplier: number
+}
+
 /** Typed wrapper around Tauri invoke commands. */
 export const api = {
   // Monsters
@@ -145,4 +151,8 @@ export const api = {
 
   startBattle: (chatMonsterIds: number[]) =>
     invoke<BattleState>('start_battle', { chatMonsterIds }),
+
+  // Wiki
+  getTypeChart: () =>
+    invoke<TypeChartEntry[]>('get_type_chart'),
 }

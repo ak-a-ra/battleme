@@ -12,6 +12,13 @@ import DashboardLayout from "./pages/dashboard/DashboardLayout";
 import LineupBuilder from "./pages/dashboard/LineupBuilder";
 import DraftPhase from "./pages/dashboard/DraftPhase";
 import BattlePage from "./pages/dashboard/BattlePage";
+import WikiLayout from "./pages/wiki/WikiLayout";
+import WikiMonsters from "./pages/wiki/WikiMonsters";
+import WikiMonsterDetail from "./pages/wiki/WikiMonsterDetail";
+import WikiHunters from "./pages/wiki/WikiHunters";
+import WikiHunterDetail from "./pages/wiki/WikiHunterDetail";
+import WikiStatusEffects from "./pages/wiki/WikiStatusEffects";
+import WikiTypeChart from "./pages/wiki/WikiTypeChart";
 import Overlay from "./pages/overlay/Overlay";
 import "./styles.css";
 
@@ -33,14 +40,15 @@ const router = createBrowserRouter([
       },
       {
         path: "wiki",
+        element: <WikiLayout />,
         children: [
-          { index: true, element: <div>Wiki Home</div> },
-          { path: "monsters", element: <div>Wiki Monsters</div> },
-          { path: "monsters/:id", element: <div>Wiki Monster Detail</div> },
-          { path: "hunters", element: <div>Wiki Hunters</div> },
-          { path: "hunters/:id", element: <div>Wiki Hunter Detail</div> },
-          { path: "status-effects", element: <div>Wiki Status Effects</div> },
-          { path: "types", element: <div>Wiki Type Chart</div> },
+          { index: true, element: <WikiMonsters /> },
+          { path: "monsters", element: <WikiMonsters /> },
+          { path: "monsters/:id", element: <WikiMonsterDetail /> },
+          { path: "hunters", element: <WikiHunters /> },
+          { path: "hunters/:id", element: <WikiHunterDetail /> },
+          { path: "status-effects", element: <WikiStatusEffects /> },
+          { path: "types", element: <WikiTypeChart /> },
         ],
       },
       {

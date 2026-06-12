@@ -85,6 +85,7 @@ pub fn run() {
             commands::draft::get_streamer_lineup,
             commands::draft::set_battle_phase,
             commands::draft::start_battle,
+            commands::wiki::get_type_chart,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
