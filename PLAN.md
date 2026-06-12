@@ -81,7 +81,7 @@ AppState:
 | 05 — Twitch | ✅ | `20baae6` | Auth, polls, EventSub WS, test mode stub, useTwitchPoll hook |
 | 01-b — HTTP Bridge | ✅ | `530a375` | Shared state via Arc<RwLock<>>; fetch polling hook |
 | 06 — Admin UI | ✅ | `f183f29` | CRUD pages, LLM generate stats, ability manager, settings |
-| 07 — Overlay Layers | ⬜ | — | |
+| 07 — Overlay Layers | ✅ | `857f6ba` | 4-layer system, CSS sprites, parallax, running scene, no Rust changes |
 | 08 — Overlay UI | ⬜ | — | |
 | 09 — Draft | ⬜ | — | |
 | 10 — Dashboard | ⬜ | — | |
