@@ -1,7 +1,6 @@
 # BattleMe — Implementation Plan Index
 
-> **v1 complete.** All core features implemented. See `PLAN.md` for detail.
-> Deferred to v2: Wiki, History & Stats, Polish.
+> **v1 complete.** All core features implemented (13 tasks). See `PLAN.md` for detail.
 
 ---
 
@@ -35,7 +34,7 @@ tmp/                   ← scratch/temp (gitignored)
 | 10 | `docs/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 | ✅ |
 | 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ✅ |
 | 12 | `docs/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 | ✅ |
-| 13 | `docs/design/task-13-polish.md` | Sound effects, auto-updater, Twitch disconnect recovery, Windows build | all | ➡️ v2 |
+| 13 | `docs/design/task-13-polish.md` | Sound effects, Twitch reconnect, disconnect banner, Dashboard error handling | all | ✅ |
 
 ---
 

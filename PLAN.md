@@ -2,7 +2,7 @@
 
 > Build order completed. All v1 tasks implemented.
 >
-> **v2 deferred:** Polish (13). See [docs/adr/](/docs/adr/) for architecture decisions.
+> **v1 complete.** All 13 tasks implemented. See [docs/adr/](/docs/adr/) for architecture decisions.
 >
 > **Critical architecture note:** The OBS overlay runs in a plain browser (no Tauri IPC). A Rust HTTP bridge (port 38021) serves battle state to the overlay via fetch polling. See Task 01-b.
 
@@ -89,6 +89,7 @@ AppState:
 | 10 — Dashboard | ✅ | `37de372` | battle controls, move selector, round settings, turn loop |
 | 11 — Wiki | ✅ | `75e71eb` | companion encyclopedia, type chart, status reference |
 | 12 — History & Stats | ✅ | `1ccc202` | battle logs, turn replay, pie/bar charts |
+| 13 — Polish | ✅ | `9375e6d` | Twitch reconnect, battle sounds, disconnect banner, Dashboard error visibility |
 
 ---
 
@@ -550,6 +551,56 @@ Commit: "feat: battle history replay + analytics stats"
 
 ---
 
+## TASK 13 — Polish ✅
+
+Commit 1: `fa6b631`
+Commit 2: `9375e6d`
+
+### Rust changes (Commit 1)
+
+**EventSub auto-reconnect:**
+- Extracted `listen_once()` with original WebSocket logic
+- Wrapped in `loop` with exponential backoff (1s → 30s cap)
+- Sets `twitch_connected` on `session_welcome` / disconnect
+- `listen_for_polls()` takes shared battle state via `stop_notify`
+
+**BattleState.twitch_connected:**
+- Added `bool` field, default `false`
+- Serialized in `/api/battle-state` endpoint
+
+**Surrender double-save fix:**
+- Removed `INSERT INTO battle_logs` from `surrender()` — only `save_battle_result` writes
+
+**/api/status endpoint:**
+- New bridge endpoint returning `{ twitch_connected: true/false }`
+
+### Frontend changes (Commit 2)
+
+**useSound.ts — Web Audio API synthesized battle sounds:**
+- 0 file dependencies, works in OBS CEF browser
+- `attack`: 400→800Hz sawtooth sweep (150ms)
+- `damage`: low 200Hz sine thud (200ms)
+- `crit`: stacked square + sine sweep (200ms)
+- `ko`: descending 600→100Hz sawtooth (400ms)
+- `victory`: C-E-G major chord (600ms)
+
+**Overlay.tsx:**
+- New `turn_log` entries trigger appropriate sound (attack/damage/crit)
+- `winner` change triggers `victory` sound
+- KO detection via `useEffect` plays `ko` sound
+- Disconnect banner (`.pulse-warning` CSS class) when `!twitch_connected`
+
+**Dashboard BattlePage.tsx:**
+- Fixed `catch {}` → displays error banner + `console.error`
+- Fixed `getAbilityInput` silent catch → `console.error`
+- OBS copy button shows "✓ Copied!" feedback for 2s
+
+### Verified
+- `cargo check` — clean
+- `cargo test --lib` — 23/23 pass
+- `tsc --noEmit` — clean
+- `vite build` — clean (653 modules, 659KB)
+
 ## 5. Non-Functional & Env
 
 - .env at app root; never committed.
@@ -610,7 +661,7 @@ React frontend (src/)
   src/lib/{invoke,stats,battleMachine}.ts
   src/hooks/useBattleState.ts
   src/hooks/useTwitchPoll.ts
-  src/pages/overlay/{Overlay,BackgroundLayer,EnvironmentLayer,Sprite,SpriteLayer,RunningScene,UILayer,MonsterHUD,TypeBadge,StatusIcon,FloatingNumbers,TurnTimer,layers,overlay}.tsx css
+  src/pages/overlay/{Overlay,BackgroundLayer,EnvironmentLayer,Sprite,SpriteLayer,RunningScene,UILayer,MonsterHUD,TypeBadge,StatusIcon,FloatingNumbers,TurnTimer,useSound,layers,overlay}.tsx css
   src/pages/dashboard/{Dashboard,LineupBuilder,DraftPhase,MoveSelector,RoundSettings}.tsx
   src/pages/wiki/{WikiLayout,WikiMonsters,WikiMonsterDetail,WikiHunters,WikiHunterDetail,WikiStatusEffects,WikiTypeChart,StatBars,TypeBadge}.tsx
   src/pages/admin/{AdminLayout,AdminMonsters,MonsterForm,AbilityManager,AdminHunters,AdminStatus,AdminSettings}.tsx
