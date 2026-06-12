@@ -32,6 +32,6 @@ jobs:
           ZEN_API_KEY: ${{ secrets.ZEN_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          model: zen/nemotron-3-ultra-free
+          model: opencode/nemotron-3-ultra-free
           agent: build
           use_github_token: true
