@@ -80,6 +80,16 @@ export interface TypeChartEntry {
   multiplier: number
 }
 
+export interface BattleLog {
+  id: number
+  date: string
+  winner_side: string
+  streamer_team: string
+  chat_team: string
+  turns: string
+  duration_secs: number
+}
+
 /** Typed wrapper around Tauri invoke commands. */
 export const api = {
   // Monsters
@@ -155,4 +165,10 @@ export const api = {
   // Wiki
   getTypeChart: () =>
     invoke<TypeChartEntry[]>('get_type_chart'),
+
+  // History
+  getBattleLogs: () =>
+    invoke<BattleLog[]>('get_battle_logs'),
+  getBattleLog: (id: number) =>
+    invoke<BattleLog | null>('get_battle_log', { id }),
 }

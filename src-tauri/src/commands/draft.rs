@@ -219,6 +219,7 @@ pub async fn start_battle(
         phase: "battle".into(),
         poll_duration_secs: 0,
         poll_started_at_ms: 0,
+        started_at_ms: crate::util::now_ms(),
     };
 
     let mut shared = state

@@ -9,6 +9,7 @@ mod db;
 mod battle;
 mod twitch;
 mod bridge;
+mod util;
 
 use std::sync::{Arc, RwLock};
 use tauri::Manager;
@@ -77,6 +78,8 @@ pub fn run() {
             commands::battle::get_ability_input,
             commands::battle::surrender,
             commands::battle::save_battle_result,
+            commands::battle::get_battle_logs,
+            commands::battle::get_battle_log,
             commands::twitch::start_poll,
             commands::twitch::get_broadcaster_id,
             commands::abilities::unassign_ability_from_monster,

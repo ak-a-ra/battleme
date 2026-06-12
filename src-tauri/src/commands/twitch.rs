@@ -25,7 +25,7 @@ pub async fn start_poll(
     {
         let mut bs = state.battle_state.write().unwrap();
         bs.poll_duration_secs = duration_secs as i64;
-        bs.poll_started_at_ms = chrono_now_ms();
+        bs.poll_started_at_ms = crate::util::now_ms();
     }
 
     // Reload .env to pick up any runtime changes
@@ -115,12 +115,4 @@ async fn resolve_broadcaster_id(
         .as_str()
         .unwrap_or("")
         .to_string())
-}
-
-/// Current unix epoch milliseconds.
-fn chrono_now_ms() -> i64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis() as i64
 }

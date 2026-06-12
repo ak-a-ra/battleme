@@ -1,5 +1,6 @@
 use crate::battle::engine;
 use crate::battle::types::{AbilityInput, BattleState};
+use crate::db::models::BattleLog;
 use crate::AppState;
 
 #[tauri::command]
@@ -88,7 +89,7 @@ pub async fn surrender(
     winner_side: String,
 ) -> Result<BattleState, String> {
     // Clone the data we need while holding the lock, then drop it before .await
-    let (result, streamer_ids, chat_ids, turn_log, winner) = {
+    let (result, streamer_ids, chat_ids, turn_log, winner, duration_secs) = {
         let mut battle = state
             .battle_state
             .write()
@@ -100,20 +101,27 @@ pub async fn surrender(
         let streamer_ids: Vec<i64> = battle.streamer_team.iter().map(|m| m.id).collect();
         let chat_ids: Vec<i64> = battle.chat_team.iter().map(|m| m.id).collect();
         let turn_log = battle.turn_log.clone();
+        let started = battle.started_at_ms;
+        let duration_secs = if started > 0 {
+            ((crate::util::now_ms() - started) / 1000) as i64
+        } else {
+            0
+        };
         let result = battle.clone();
-        (result, streamer_ids, chat_ids, turn_log, winner_side)
+        (result, streamer_ids, chat_ids, turn_log, winner_side, duration_secs)
     }; // RwLock guard dropped here
 
     // Log to battle_logs (no RwLock guard held)
     let db = state.db.lock().await;
     let _ = db.execute(
         "INSERT INTO battle_logs (date, winner_side, streamer_team, chat_team, turns, duration_secs)
-         VALUES (datetime('now'), ?1, ?2, ?3, ?4, 0)",
+         VALUES (datetime('now'), ?1, ?2, ?3, ?4, ?5)",
         rusqlite::params![
             winner,
             serde_json::to_string(&streamer_ids).unwrap_or_default(),
             serde_json::to_string(&chat_ids).unwrap_or_default(),
             serde_json::to_string(&turn_log).unwrap_or_default(),
+            duration_secs,
         ],
     );
 
@@ -126,7 +134,7 @@ pub async fn save_battle_result(
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
     // Clone data while holding lock, then drop it
-    let (winner, streamer_ids, chat_ids, turn_log) = {
+    let (winner, streamer_ids, chat_ids, turn_log, duration_secs) = {
         let battle = state
             .battle_state
             .read()
@@ -139,21 +147,90 @@ pub async fn save_battle_result(
         let streamer_ids: Vec<i64> = battle.streamer_team.iter().map(|m| m.id).collect();
         let chat_ids: Vec<i64> = battle.chat_team.iter().map(|m| m.id).collect();
         let turn_log = battle.turn_log.clone();
-        (winner, streamer_ids, chat_ids, turn_log)
+        let started = battle.started_at_ms;
+        let duration_secs = if started > 0 {
+            ((crate::util::now_ms() - started) / 1000) as i64
+        } else {
+            0
+        };
+        (winner, streamer_ids, chat_ids, turn_log, duration_secs)
     }; // RwLock guard dropped here
 
     let db = state.db.lock().await;
     db.execute(
         "INSERT INTO battle_logs (date, winner_side, streamer_team, chat_team, turns, duration_secs)
-         VALUES (datetime('now'), ?1, ?2, ?3, ?4, 0)",
+         VALUES (datetime('now'), ?1, ?2, ?3, ?4, ?5)",
         rusqlite::params![
             winner,
             serde_json::to_string(&streamer_ids).unwrap_or_default(),
             serde_json::to_string(&chat_ids).unwrap_or_default(),
             serde_json::to_string(&turn_log).unwrap_or_default(),
+            duration_secs,
         ],
     )
     .map_err(|e| format!("DB error: {e}"))?;
 
     Ok(())
+}
+
+/// Get the most recent battle logs (up to 50).
+#[tauri::command]
+pub async fn get_battle_logs(
+    state: tauri::State<'_, AppState>,
+) -> Result<Vec<BattleLog>, String> {
+    let db = state.db.lock().await;
+    let mut stmt = db
+        .prepare(
+            "SELECT id, date, winner_side, streamer_team, chat_team, turns, duration_secs
+             FROM battle_logs ORDER BY id DESC LIMIT 50",
+        )
+        .map_err(|e| e.to_string())?;
+    let logs = stmt
+        .query_map([], |row| {
+            Ok(BattleLog {
+                id: row.get(0)?,
+                date: row.get(1)?,
+                winner_side: row.get(2)?,
+                streamer_team: row.get(3)?,
+                chat_team: row.get(4)?,
+                turns: row.get(5)?,
+                duration_secs: row.get(6)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())?;
+    Ok(logs)
+}
+
+/// Get a single battle log by ID.
+#[tauri::command]
+pub async fn get_battle_log(
+    state: tauri::State<'_, AppState>,
+    id: i64,
+) -> Result<Option<BattleLog>, String> {
+    let db = state.db.lock().await;
+    let mut stmt = db
+        .prepare(
+            "SELECT id, date, winner_side, streamer_team, chat_team, turns, duration_secs
+             FROM battle_logs WHERE id = ?1",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt
+        .query_map([id], |row| {
+            Ok(BattleLog {
+                id: row.get(0)?,
+                date: row.get(1)?,
+                winner_side: row.get(2)?,
+                streamer_team: row.get(3)?,
+                chat_team: row.get(4)?,
+                turns: row.get(5)?,
+                duration_secs: row.get(6)?,
+            })
+        })
+        .map_err(|e| e.to_string())?;
+    match rows.next() {
+        Some(Ok(log)) => Ok(Some(log)),
+        _ => Ok(None),
+    }
 }

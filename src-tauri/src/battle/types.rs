@@ -75,6 +75,8 @@ pub struct BattleState {
     pub poll_duration_secs: i64,           // 0 = no active poll
     #[serde(default)]
     pub poll_started_at_ms: i64,           // unix ms timestamp, 0 = no active poll
+    #[serde(default)]
+    pub started_at_ms: i64,                // unix ms when battle started, 0 = not started
 }
 
 // ---------------------------------------------------------------------------
@@ -131,5 +133,6 @@ mod tests {
         assert!(bs.turn_log.is_empty());
         assert_eq!(bs.poll_duration_secs, 0);
         assert_eq!(bs.poll_started_at_ms, 0);
+        assert_eq!(bs.started_at_ms, 0);
     }
 }
