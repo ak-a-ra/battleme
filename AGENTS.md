@@ -866,7 +866,7 @@ Tauri Window (Dashboard) ── invoke() ──> Rust Backend
 ```
 battleme/
 ├── AGENTS.md, INDEX.md, PLAN.md, README.md
-├── docs/design/     ← task specs (01–13)
+├── docs/archive/design/     ← task specs (01–13)
 ├── docs/adr/        ← architecture decision records
 ├── src/             ← React frontend
 │   ├── pages/, components/, hooks/, lib/

@@ -10,7 +10,7 @@
 AGENTS.md              ← project context for AI agents
 PLAN.md                ← master implementation plan
 ISSUES.md              ← known issues & workarounds
-docs/design/           ← task specs (01–13)
+docs/archive/design/    ← archived task specs (01–13)
 docs/adr/              ← architecture decision records
 tmp/                   ← scratch/temp (gitignored)
 ```
@@ -21,20 +21,20 @@ tmp/                   ← scratch/temp (gitignored)
 
 | # | File | Goal | Depends on | Status |
 |---|---|---|---|---|---|
-| 01 | `docs/design/task-01-scaffold.md` | Tauri + React project init, folder structure, .env template | — | ✅ |
-| 02 | `docs/design/task-02-database.md` | SQLite schema, migrations, seed 12 monsters + 9 status effects | 01 | ✅ |
-| 03 | `docs/design/task-03-commands.md` | Tauri invoke commands for all CRUD + settings | 02 | ✅ |
-| 04 | `docs/design/task-04-battle-engine.md` | Rust battle engine — damage calc, type chart, status (+ tests) | 03 | ✅ |
-| 05 | `docs/design/task-05-twitch.md` | Twitch integration — auth, polls, EventSub, test mode stub | 03 | ✅ |
-| 01-b | `docs/design/task-01b-http-bridge.md` | HTTP bridge for OBS overlay — shared state, REST endpoints | 04 | ✅ |
-| 06 | `docs/design/task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 | ✅ |
-| 07 | `docs/design/task-07-overlay-layers.md` | OBS overlay 4-layer system, sprite animations, parallax | 01-b | ✅ |
-| 08 | `docs/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 | ✅ |
-| 09 | `docs/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 | ✅ |
-| 10 | `docs/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 | ✅ |
-| 11 | `docs/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ✅ |
-| 12 | `docs/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 | ✅ |
-| 13 | `docs/design/task-13-polish.md` | Sound effects, Twitch reconnect, disconnect banner, Dashboard error handling | all | ✅ |
+| 01 | `docs/archive/design/task-01-scaffold.md` | Tauri + React project init, folder structure, .env template | — | ✅ |
+| 02 | `docs/archive/design/task-02-database.md` | SQLite schema, migrations, seed 12 monsters + 9 status effects | 01 | ✅ |
+| 03 | `docs/archive/design/task-03-commands.md` | Tauri invoke commands for all CRUD + settings | 02 | ✅ |
+| 04 | `docs/archive/design/task-04-battle-engine.md` | Rust battle engine — damage calc, type chart, status (+ tests) | 03 | ✅ |
+| 05 | `docs/archive/design/task-05-twitch.md` | Twitch integration — auth, polls, EventSub, test mode stub | 03 | ✅ |
+| 01-b | `docs/archive/design/task-01b-http-bridge.md` | HTTP bridge for OBS overlay — shared state, REST endpoints | 04 | ✅ |
+| 06 | `docs/archive/design/task-06-admin-ui.md` | Admin UI — CRUD forms, LLM Generate Stats button | 03 | ✅ |
+| 07 | `docs/archive/design/task-07-overlay-layers.md` | OBS overlay 4-layer system, sprite animations, parallax | 01-b | ✅ |
+| 08 | `docs/archive/design/task-08-overlay-ui.md` | Overlay UI — HP/MP bars, status icons, floating numbers, timer | 07 | ✅ |
+| 09 | `docs/archive/design/task-09-draft.md` | Draft system — streamer lineup + chat 3-poll draft + RNG wildcard | 05 | ✅ |
+| 10 | `docs/archive/design/task-10-dashboard.md` | Streamer dashboard — battle control, move selector, surrender | 04, 01-b, 09 | ✅ |
+| 11 | `docs/archive/design/task-11-wiki.md` | Wiki — monster/hunter encyclopedia, status effects, type chart | 03 | ✅ |
+| 12 | `docs/archive/design/task-12-history-stats.md` | Battle history turn replay + analytics stats page | 10 | ✅ |
+| 13 | `docs/archive/design/task-13-polish.md` | Sound effects, Twitch reconnect, disconnect banner, Dashboard error handling | all | ✅ |
 
 ---
 
