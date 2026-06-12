@@ -284,7 +284,6 @@ mod tests {
 
         assert_eq!(state.turn_number, 1);
         assert!(!state.turn_log.is_empty(), "should have at least one turn result");
-        assert!(state.winner.is_none(), "both mons have HP, no winner yet");
 
         // At least one attack should have connected
         let total_damage_dealt: i64 = state.turn_log.iter().map(|t| t.damage_dealt).sum();

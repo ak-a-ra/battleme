@@ -6,3 +6,4 @@ pub mod hunters;
 pub mod monsters;
 pub mod settings;
 pub mod status_effects;
+pub mod twitch;

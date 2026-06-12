@@ -924,3 +924,231 @@ No items/equipment, no Channel Points/Sub/Bits effects, no OAuth (keep .env), no
 - Verify: `cargo check`, `cargo test`, `vite build`
 - Update `ISSUES.md` when new workarounds/bugs are discovered
 - Sprite fallback works without any image files
+
+---
+
+# AGENTA.md — Code Quality & Analysis Toolkit
+
+> Reference document for AI agents working with Python, Rust, and TypeScript codebases.
+> Use this file to select the right tool for linting, static analysis, dead code detection, bug catching, and formatting.
+
+---
+
+## Python
+
+### Formatting
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **Black** | Opinionated code formatter | `black .` |
+| **isort** | Sort and organize imports | `isort .` |
+| **autopep8** | Auto-fix PEP 8 violations | `autopep8 --in-place --recursive .` |
+| **Ruff** | Ultra-fast formatter (replaces Black + isort) | `ruff format .` |
+
+### Linting & Style
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **Ruff** | All-in-one linter (replaces flake8, pydocstyle, etc.) | `ruff check .` |
+| **Pylint** | Deep static analysis, logic errors, conventions | `pylint src/` |
+| **flake8** | Style guide enforcement (PEP 8) | `flake8 .` |
+| **pydocstyle** | Docstring conventions | `pydocstyle src/` |
+
+### Type Checking
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **mypy** | Static type checker | `mypy .` |
+| **pyright** | Microsoft's type checker (Pylance backend) | `pyright .` |
+| **pytype** | Google's type checker with inference | `pytype src/` |
+
+### Dead Code Detection
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **Vulture** | Find unused variables, functions, classes, imports | `vulture src/` |
+| **deadcode** | Simple CLI for dead code detection | `deadcode src/` |
+| **unimport** | Remove unused imports | `unimport --remove src/` |
+| **autoflake** | Auto-remove unused imports/variables | `autoflake --in-place --recursive .` |
+
+### Bug & Security Detection
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **Pylint** | Logic errors, undefined variables, wrong arg counts | `pylint src/` |
+| **bandit** | Security vulnerability scanner | `bandit -r src/` |
+| **flake8-bugbear** | Bug pattern detection | `flake8 --select=B .` |
+| **semgrep** | Pattern-based security and bug detection | `semgrep --config=auto .` |
+| **pydantic** | Runtime type validation | (import in code) |
+| **prospector** | Meta-tool wrapping pylint, pep8, etc. | `prospector .` |
+
+### Testing & Coverage
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **pytest** | Testing framework | `pytest` |
+| **coverage.py** | Code coverage analysis | `coverage run -m pytest` |
+| **mutmut** | Mutation testing | `mutmut run` |
+
+### Recommended Python Stack
+```bash
+# Format + Lint (fast, all-in-one)
+ruff format . && ruff check .
+
+# Type check
+mypy .
+
+# Dead code
+vulture src/
+
+# Security
+bandit -r src/
+
+# Test + coverage
+pytest && coverage report
+```
+
+---
+
+## Rust
+
+### Built-in Tools (via Cargo)
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **rustc** | Compiler with strict warnings and lints | `rustc --warn ...` |
+| **cargo check** | Fast syntax/type check without full compile | `cargo check` |
+| **cargo fmt** | Official formatter (rustfmt) | `cargo fmt` |
+| **cargo clippy** | Advanced linting with pedantic lints | `cargo clippy -- -W clippy::pedantic` |
+| **cargo fix** | Auto-apply rustc/clippy suggestions | `cargo fix` |
+
+### Dead Code Detection
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **rustc dead_code lint** | Built-in unused function/variable/import warnings | (enabled by default) |
+| **cargo-udeps** | Find unused dependencies in Cargo.toml | `cargo udeps` |
+| **cargo-machete** | Fast unused dependency finder | `cargo machete` |
+| **cargo-modules** | Visualize module structure, spot orphans | `cargo modules generate tree` |
+
+### Bug & Security Detection
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **cargo clippy** | Catches panics, inefficiencies, API misuse, logic errors | `cargo clippy` |
+| **cargo audit** | Security vulnerabilities in dependencies | `cargo audit` |
+| **cargo deny** | Ban risky crates, check security advisories | `cargo deny check` |
+| **cargo geiger** | Detect unsafe code usage | `cargo geiger` |
+| **miri** | Catch undefined behavior in unsafe code | `cargo miri test` |
+| **cargo tarpaulin** | Code coverage | `cargo tarpaulin` |
+
+### Recommended Rust Stack
+```bash
+# Format + Lint + Fix
+cargo fmt && cargo clippy -- -W clippy::pedantic && cargo fix
+
+# Check unused deps
+cargo machete
+
+# Security audit
+cargo audit
+
+# Test + coverage
+cargo test && cargo tarpaulin
+```
+
+---
+
+## TypeScript
+
+### Linting & Analysis
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **ESLint** | Standard linter with TS support | `eslint . --ext .ts,.tsx` |
+| **@typescript-eslint/parser** | TS parser for ESLint | (in eslint config) |
+| **@typescript-eslint/eslint-plugin** | TS-specific lint rules | (in eslint config) |
+| **TSLint** | **DEPRECATED** — do not use | — |
+
+### Type Checking
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **tsc** | TypeScript compiler type check | `tsc --noEmit` |
+| **TypeScript-Strict-Plugin** | Incremental strict mode enforcement | (plugin setup) |
+
+### Formatting
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **Prettier** | Opinionated formatter | `prettier --write .` |
+| **dprint** | Fast alternative formatter | `dprint fmt` |
+
+### Dead Code Detection
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **Knip** | Find unused files, deps, exports, class members | `knip` |
+| **ts-prune** | Find unused exports | `ts-prune` |
+| **depcheck** | Find unused npm dependencies | `depcheck` |
+| **ESLint** | `no-unused-vars`, `no-unused-modules` rules | (in eslint config) |
+| **tsc** | Flag unused locals/parameters | `tsc --noUnusedLocals --noUnusedParameters` |
+
+### Bug & Security Detection
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **tsc** | Type errors as first defense | `tsc --noEmit` |
+| **ESLint + @typescript-eslint** | Catches `any` misuse, promise mishandling, null issues | `eslint .` |
+| **eslint-plugin-sonarjs** | Cognitive complexity and bug detection | (in eslint config) |
+| **eslint-plugin-unicorn** | Suboptimal and buggy pattern detection | (in eslint config) |
+| **semgrep** | Pattern-based security and bug detection | `semgrep --config=auto .` |
+
+### Documentation
+| Tool | Purpose | Command |
+|------|---------|---------|
+| **TypeDoc** | Generate TS documentation | `typedoc src/` |
+
+### Recommended TypeScript Stack
+```bash
+# Type check
+tsc --noEmit
+
+# Lint + fix
+eslint . --ext .ts,.tsx --fix
+
+# Format
+prettier --write .
+
+# Dead code
+knip
+
+# Security
+semgrep --config=auto .
+```
+
+---
+
+## Cross-Language Tools
+
+| Tool | Languages | Purpose |
+|------|-----------|---------|
+| **semgrep** | Python, Rust, TS, +more | Pattern-based security & bug detection |
+| **SonarQube / SonarCloud** | All major languages | Comprehensive code quality platform |
+| **CodeQL** | Python, Rust, TS, +more | Semantic code analysis (GitHub) |
+| **Snyk** | All major languages | Security scanning for code + dependencies |
+
+---
+
+## Quick Decision Matrix
+
+| Goal | Python | Rust | TypeScript |
+|------|--------|------|------------|
+| Format code | `ruff format` / `black` | `cargo fmt` | `prettier` |
+| Lint / style | `ruff check` / `pylint` | `cargo clippy` | `eslint` |
+| Type check | `mypy` / `pyright` | `cargo check` | `tsc --noEmit` |
+| Find dead code | `vulture` | `cargo machete` | `knip` |
+| Catch bugs | `pylint` + `flake8-bugbear` | `cargo clippy` | `eslint` + `tsc` |
+| Security scan | `bandit` | `cargo audit` | `semgrep` |
+| Fix auto-magically | `ruff check --fix` | `cargo fix` | `eslint --fix` |
+
+---
+
+## Notes for AI Agents
+
+- Always run `cargo check` before `cargo build` in Rust to save time.
+- In Python, prefer **Ruff** over separate `black` + `flake8` + `isort` for speed.
+- In TypeScript, `tsc --noEmit` is your friend for CI type checking.
+- Use **Knip** for TS dead code — it's the most thorough tool available.
+- For security, run **bandit** (Python), **cargo audit** (Rust), and **semgrep** (TS) in CI pipelines.
+- When suggesting fixes, prefer tools with `--fix` or `cargo fix` flags before manual edits.
+
+---
+
+*Last updated: 2026-06-12*

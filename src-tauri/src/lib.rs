@@ -73,6 +73,8 @@ pub fn run() {
             commands::settings::get_settings,
             commands::settings::save_settings,
             commands::battle::resolve_turn,
+            commands::twitch::start_poll,
+            commands::twitch::get_broadcaster_id,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
