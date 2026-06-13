@@ -27,3 +27,22 @@ pub async fn get_app_token(client_id: &str, client_secret: &str) -> Result<Strin
         .map_err(|e| format!("Token parse failed: {e}"))?;
     Ok(res.access_token)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_token_response_deserialization() {
+        let json = r#"{"access_token":"abc123"}"#;
+        let resp: TokenResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(resp.access_token, "abc123");
+    }
+
+    #[test]
+    fn test_token_response_missing_field() {
+        let json = r#"{}"#;
+        let result: Result<TokenResponse, _> = serde_json::from_str(json);
+        assert!(result.is_err());
+    }
+}
