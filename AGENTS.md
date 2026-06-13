@@ -886,13 +886,16 @@ battleme/
 | 02 | Database | SQLite schema, migrations, seed | ✅ |
 | 03 | Commands | Tauri CRUD commands + invoke wrapper | ✅ |
 | 04 | Battle Engine | Pure Rust engine (types, damage, status, engine, +tests) | ✅ |
-| 05 | Twitch | EventSub, polls, auth, test mode stub | ⬜ |
-| 01-b | HTTP Bridge | tiny_http server, shared state, fetch polling hook | ⬜ |
-| 06 | Admin UI | CRUD forms, LLM Generate Stats | ⬜ |
-| 07 | Overlay Layers | 4-layer system, sprites, environment, animations | ⬜ |
-| 08 | Overlay UI | HP/MP bars, status icons, floating numbers, timer | ⬜ |
-| 09 | Draft | Streamer lineup, 3-poll chat draft, RNG wildcard | ⬜ |
-| 10 | Dashboard | Battle control, move selector, surrender, settings | ⬜ |
+| 05 | Twitch | EventSub, polls, auth, test mode stub | ✅ |
+| 01-b | HTTP Bridge | tiny_http server, shared state, fetch polling hook | ✅ |
+| 06 | Admin UI | CRUD forms, LLM Generate Stats | ✅ |
+| 07 | Overlay Layers | 4-layer system, sprites, environment, animations | ✅ |
+| 08 | Overlay UI | HP/MP bars, status icons, floating numbers, timer | ✅ |
+| 09 | Draft | Streamer lineup, 3-poll chat draft, RNG wildcard | ✅ |
+| 10 | Dashboard | Battle control, move selector, surrender, settings | ✅ |
+| 11 | Wiki | Searchable monsters/hunters/type chart | ✅ |
+| 12 | History/Stats | Logs + charts (recharts) | ✅ |
+| 13 | Polish | Final polish, cleanup, documentation | ✅ |
 
 ## Dev Environment Rules (Termux/Android)
 
