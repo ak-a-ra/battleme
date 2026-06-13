@@ -104,6 +104,6 @@ function waitForResult(): Promise<string> {
   return new Promise(resolve => {
     listen<string>('poll-result', (e) => {
       resolve(e.payload)
-    })
+    }).then(unlisten => unlisten())
   })
 }
