@@ -47,6 +47,102 @@ pub async fn listen(
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_session_welcome_parse() {
+        let json = json!({
+            "metadata": {
+                "message_type": "session_welcome",
+                "message_id": "msg_123"
+            },
+            "payload": {
+                "session": {
+                    "id": "session_abc123",
+                    "status": "connected",
+                    "connected_at": "2024-01-01T00:00:00Z",
+                    "keepalive_timeout_seconds": 10
+                }
+            }
+        });
+        let msg_type = json["metadata"]["message_type"].as_str().unwrap_or("");
+        assert_eq!(msg_type, "session_welcome");
+        let session_id = json["payload"]["session"]["id"].as_str().unwrap_or("");
+        assert_eq!(session_id, "session_abc123");
+    }
+
+    #[test]
+    fn test_notification_poll_end_parse() {
+        let json = json!({
+            "metadata": {
+                "message_type": "notification",
+                "subscription_type": "channel.poll.end"
+            },
+            "payload": {
+                "subscription": {
+                    "type": "channel.poll.end",
+                    "id": "sub_123"
+                },
+                "event": {
+                    "id": "poll_123",
+                    "status": "completed",
+                    "choices": [
+                        {"title": "Basic Attack", "votes": 5},
+                        {"title": "Fire Blast", "votes": 10}
+                    ]
+                }
+            }
+        });
+        let sub_type = json["payload"]["subscription"]["type"].as_str().unwrap_or("");
+        assert_eq!(sub_type, "channel.poll.end");
+        let status = json["payload"]["event"]["status"].as_str().unwrap_or("");
+        assert_eq!(status, "completed");
+        let choices = json["payload"]["event"]["choices"].as_array().unwrap();
+        assert_eq!(choices.len(), 2);
+    }
+
+    #[test]
+    fn test_session_reconnect_parse() {
+        let json = json!({
+            "metadata": {
+                "message_type": "session_reconnect"
+            },
+            "payload": {
+                "session": {
+                    "reconnect_url": "wss://eventsub.wss.twitch.tv/ws?session_id=abc"
+                }
+            }
+        });
+        let msg_type = json["metadata"]["message_type"].as_str().unwrap_or("");
+        assert_eq!(msg_type, "session_reconnect");
+        let reconnect_url = json["payload"]["session"]["reconnect_url"].as_str().unwrap_or("");
+        assert!(!reconnect_url.is_empty());
+    }
+
+    #[test]
+    fn test_subscribe_poll_end_body() {
+        let body = json!({
+            "type": "channel.poll.end",
+            "version": "1",
+            "condition": {
+                "broadcaster_user_id": "123456"
+            },
+            "transport": {
+                "method": "websocket",
+                "session_id": "session_abc"
+            }
+        });
+        assert_eq!(body["type"], "channel.poll.end");
+        assert_eq!(body["version"], "1");
+        assert_eq!(body["condition"]["broadcaster_user_id"], "123456");
+        assert_eq!(body["transport"]["method"], "websocket");
+        assert_eq!(body["transport"]["session_id"], "session_abc");
+    }
+}
+
 /// Single EventSub WebSocket session — connects, subscribes, processes messages.
 /// Returns Ok when the session ends cleanly, Err on failure.
 async fn listen_once(

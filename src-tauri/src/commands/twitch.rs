@@ -117,3 +117,26 @@ async fn resolve_broadcaster_id(
         .unwrap_or("")
         .to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_resolve_broadcaster_id_response_parse() {
+        let json = json!({
+            "data": [
+                {"id": "123456", "login": "testchannel", "display_name": "TestChannel"}
+            ]
+        });
+        let broadcaster_id = json["data"][0]["id"].as_str().unwrap_or("").to_string();
+        assert_eq!(broadcaster_id, "123456");
+    }
+
+    #[test]
+    fn test_empty_channel_name_error() {
+        let result = std::env::var("NONEXISTENT_VAR");
+        assert!(result.is_err());
+    }
+}

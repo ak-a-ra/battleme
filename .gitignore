@@ -20,4 +20,6 @@ Thumbs.db
 
 # Temp / scratch
 tmp/
-libtest.rlib
+
+# Rust build artifacts
+*.rlib
