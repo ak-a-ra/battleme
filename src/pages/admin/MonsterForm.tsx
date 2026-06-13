@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { api } from '../../lib/invoke'
 
 interface MonsterFormData {
@@ -33,6 +33,12 @@ export default function MonsterForm({ initial, onClose, onSaved }: Props) {
   const editing = !!initial?.id
   const [form, setForm] = useState<MonsterFormData>({ ...defaultForm, ...initial })
   const [generating, setGenerating] = useState(false)
+  const [generatedByLlm, setGeneratedByLlm] = useState(false)
+
+  // Reset generatedByLlm when initial data changes (new monster or edit different monster)
+  useEffect(() => {
+    setGeneratedByLlm(false)
+  }, [initial?.id])
 
   const handleChange = (key: keyof MonsterFormData, value: string | number) => {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -52,6 +58,7 @@ export default function MonsterForm({ initial, onClose, onSaved }: Props) {
       if (stats.int_stat) setForm(prev => ({ ...prev, int_stat: stats.int_stat }))
       if (stats.luck) setForm(prev => ({ ...prev, luck: stats.luck }))
       if (stats.lore) setForm(prev => ({ ...prev, lore: stats.lore }))
+      setGeneratedByLlm(true)
     } catch (err) {
       alert(`Generate failed: ${err}`)
     }
@@ -67,7 +74,7 @@ export default function MonsterForm({ initial, onClose, onSaved }: Props) {
       str_stat: form.str_stat, agi: form.agi, dex: form.dex,
       int_stat: form.int_stat, luck: form.luck,
       lore: form.lore,
-      generated_by_llm: false,
+      generated_by_llm: generatedByLlm,
     }
     if (editing && initial?.id) {
       await api.updateMonster({ ...monster, id: initial.id })

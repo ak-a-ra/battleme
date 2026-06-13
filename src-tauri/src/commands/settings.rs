@@ -9,7 +9,7 @@ use std::collections::HashMap;
 pub fn get_settings() -> HashMap<String, String> {
     dotenvy::dotenv().ok();
 
-    let keys = ["TWITCH_CLIENT_ID", "TWITCH_CHANNEL_NAME", "ANTHROPIC_API_KEY"];
+    let keys = ["TWITCH_CLIENT_ID", "TWITCH_CLIENT_SECRET", "TWITCH_CHANNEL_NAME", "ANTHROPIC_API_KEY"];
 
     keys.iter()
         .map(|&k| (k.to_string(), std::env::var(k).unwrap_or_default()))
@@ -21,7 +21,7 @@ pub fn get_settings() -> HashMap<String, String> {
 // ---------------------------------------------------------------------------
 #[tauri::command]
 pub fn save_settings(settings: HashMap<String, String>) {
-    let known_keys = ["TWITCH_CLIENT_ID", "TWITCH_CHANNEL_NAME", "ANTHROPIC_API_KEY"];
+    let known_keys = ["TWITCH_CLIENT_ID", "TWITCH_CLIENT_SECRET", "TWITCH_CHANNEL_NAME", "ANTHROPIC_API_KEY"];
 
     let content = known_keys
         .iter()
