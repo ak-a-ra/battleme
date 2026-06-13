@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { api } from '../lib/invoke'
+import { listen } from '@tauri-apps/api/event'
 import type { Monster } from '../lib/invoke'
 
 type DraftSlot = 1 | 2 | 3
@@ -101,11 +102,9 @@ export function useChatDraft({ allMonsters, streamerMonsterIds, pollDurationSecs
 /** Promise that resolves on the next poll-result event. */
 function waitForResult(): Promise<string> {
   return new Promise(resolve => {
-    import('@tauri-apps/api/event').then(({ listen }) => {
-      const unlisten = listen<string>('poll-result', (e) => {
-        unlisten.then(f => f())
-        resolve(e.payload)
-      })
+    const unlisten = listen<string>('poll-result', (e) => {
+      unlisten.then(f => f())
+      resolve(e.payload)
     })
   })
 }
